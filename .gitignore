@@ -1,0 +1,92 @@
+# =========================
+# PYTHON
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+
+
+# =========================
+# DJANGO
+# =========================
+db.sqlite3
+*.sqlite3
+
+media/
+staticfiles/
+
+*.log
+
+
+# =========================
+# ENVIRONMENT VARIABLES
+# =========================
+.env
+.env.*
+
+
+# =========================
+# VIRTUAL ENVIRONMENTS
+# =========================
+venv/
+env/
+ENV/
+
+
+# =========================
+# IDE / EDITOR FILES
+# =========================
+.vscode/
+.idea/
+
+*.swp
+*.swo
+
+
+# =========================
+# OS FILES
+# =========================
+.DS_Store
+Thumbs.db
+
+
+# =========================
+# TEST / CACHE FILES
+# =========================
+.coverage
+.pytest_cache/
+htmlcov/
+
+.cache/
+
+
+# =========================
+# NODE (if ever used later)
+# =========================
+node_modules/
+
+
+# =========================
+# BUILD FILES
+# =========================
+dist/
+build/
+
+
+# =========================
+# SECRET / LOCAL SETTINGS
+# =========================
+local_settings.py
+
+
+# =========================
+# PYTHON TOOLING
+# =========================
+pip-wheel-metadata/
+*.egg-info/
+
+
+# =========================
+# JUPYTER
+# =========================
+.ipynb_checkpoints/

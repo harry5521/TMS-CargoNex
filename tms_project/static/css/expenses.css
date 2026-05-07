@@ -1,0 +1,268 @@
+/* LAYOUT */
+.expenses-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+/* ACTIVE (match all pages) */
+.expenses-layout.active {
+  grid-template-columns: minmax(0, 4fr) minmax(320px, 1fr);
+}
+
+/* LEFT */
+.expenses-left {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* HEADER */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.primary-btn {
+  background: #007bff;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+/* CARDS */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+/* FILTER */
+.filter-bar {
+  display: flex;
+  gap: 10px;
+}
+
+.filter-bar input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.filter-btn {
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: none;
+  background: #007bff;
+  color: white;
+  cursor: pointer;
+}
+
+/* TABLE */
+.table-section {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #eee;
+  overflow: hidden;
+}
+
+.table-wrapper {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* STICKY HEADER */
+thead {
+  position: sticky;
+  top: 0;
+  background: #f9fafb;
+  z-index: 10;
+}
+
+thead th {
+  font-weight: 600;
+  font-size: 15px;
+  color: #000;
+  text-align: center;
+}
+
+/* CELLS */
+th, td {
+  padding: 14px 16px;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* ROW */
+tbody tr {
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+tbody tr:hover {
+  background: #f5f7fa;
+}
+
+/* LINK */
+.link {
+  color: #007bff;
+  font-weight: 600;
+}
+
+/* BADGES (consistent style) */
+.badge {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.paid {
+  background: #d4edda;
+  color: #155724;
+}
+
+.pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.neutral {
+  background: #eee;
+  color: #555;
+}
+
+/* RIGHT PANEL (overlay like dashboard) */
+/* RIGHT PANEL */
+.expenses-right {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  width: 360px;
+
+  background: #fff;
+  padding: 20px;
+  border-radius: 14px;
+  border: 1px solid #eee;
+
+  box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+  z-index: 2000;
+
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+
+  animation: slideInRight 0.25s ease;
+}
+
+/* ANIMATION */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.hidden {
+  display: none;
+}
+
+.close-btn {
+  float: right;
+  border: none;
+  background: none;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+hr {
+  margin: 15px 0;
+  border-top: 1px solid #eee;
+}
+
+
+/* Right Panel Design CSS */
+/* HEADER */
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* DATE TEXT */
+.panel-sub {
+  font-size: 13px;
+  color: #777;
+  margin: 10px 0 15px;
+}
+
+/* CARD */
+.panel-card {
+  background: #f9fafb;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+.panel-card h4 {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 6px;
+}
+
+/* HIGHLIGHT */
+.panel-card.highlight {
+  background: #eef6ff;
+  border: 1px solid #d6e6ff;
+}
+
+/* ROW LINE */
+.row-line {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+/* STATUS BADGE */
+#expStatus {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: #e3f2fd;
+  color: #1976d2;
+  font-weight: 600;
+}
+
+/* ACTION */
+.panel-actions {
+  margin-top: 15px;
+}
+
+/* BUTTON */
+.edit-btn {
+  width: 100%;
+  padding: 10px;
+  background: #007bff;
+  color: white;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.edit-btn:hover {
+  background: #0056b3;
+}

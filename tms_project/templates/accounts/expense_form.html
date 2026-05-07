@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Add Expense</title>
+
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/expense_form.css">
+</head>
+
+<body onload="loadLayout()">
+
+  <div id="sidebar"></div>
+
+  <div class="main">
+    <div id="navbar"></div>
+
+    <div class="content">
+
+      <div class="form-container">
+
+        <!-- HEADER -->
+        <div class="page-header">
+          <h2>Add General Expense</h2>
+        </div>
+
+        <!-- EXPENSE DETAILS -->
+        <div class="form-card">
+          <h3>Expense Details</h3>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Expense Category *</label>
+              <input type="text" placeholder="e.g. Driver Salary">
+            </div>
+
+            <div class="form-group">
+              <label>Amount *</label>
+              <input type="number" placeholder="0.00">
+            </div>
+
+            <div class="form-group">
+              <label>Date *</label>
+              <input type="date">
+            </div>
+
+            <div class="form-group">
+              <label>Payment Type</label>
+              <select>
+                <option>Cash</option>
+                <option>Bank</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADDITIONAL INFO -->
+        <div class="form-card">
+          <h3>Additional Information</h3>
+
+          <div class="form-group">
+            <label>Description / Notes</label>
+            <textarea placeholder="Enter details..."></textarea>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Staff Name</label>
+              <input type="text" placeholder="Employee name">
+            </div>
+
+            <div class="form-group">
+              <label>Vehicle Number</label>
+              <input type="text" placeholder="e.g. ABC-123">
+            </div>
+          </div>
+        </div>
+
+        <!-- SUB CATEGORY -->
+        <div class="form-card">
+          <h3>Granular Tracking</h3>
+
+          <div class="form-group">
+            <label>Subcategory</label>
+            <input type="text" placeholder="e.g. Fuel, Bonus">
+          </div>
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="form-actions">
+          <button class="secondary-btn">Cancel</button>
+          <button class="secondary-btn">Save & Add Another</button>
+          <button class="primary-btn">Save Expense</button>
+        </div>
+
+      </div>
+
+    </div>
+
+    <div id="footer"></div>
+  </div>
+
+  <script src="../js/include.js"></script>
+  <script src="../js/expense_form.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Expenses</title>
+
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/expenses.css">
+</head>
+
+<body onload="loadLayout()">
+
+  <div id="sidebar"></div>
+
+  <div class="main">
+    <div id="navbar"></div>
+
+    <div class="content">
+
+      <div class="expenses-layout">
+
+        <!-- LEFT -->
+        <div class="expenses-left">
+
+          <!-- HEADER -->
+          <div class="page-header">
+            <h2>General Expenses</h2>
+            <button class="primary-btn" onclick="location.href='../pages/expense_form.html'">+ Add Expense</button>
+          </div>
+
+          <!-- CARDS -->
+          <div class="cards">
+            <div class="card">
+              <p>Total Expenses</p>
+              <h3>Rs. 7,42,500</h3>
+            </div>
+            <div class="card">
+              <p>Vehicle</p>
+              <h3>Rs. 2,84,300</h3>
+            </div>
+            <div class="card">
+              <p>Office</p>
+              <h3>Rs. 94,200</h3>
+            </div>
+            <div class="card">
+              <p>Salary</p>
+              <h3>Rs. 3,64,000</h3>
+            </div>
+          </div>
+
+          <!-- TABLE -->
+          <div class="table-section">
+
+            <form method="GET" class="global-filter">
+
+              <!-- SEARCH -->
+              <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" name="q" placeholder="Search ID, customer..." value="{{ request.GET.q }}">
+              </div>
+
+              <!-- FILTER SELECT -->
+              <select name="filter" id="filterSelect" onchange="handleFilterChange()">
+                <option value="">All</option>
+                <option value="today" selected>Today</option>
+                <option value="yesterday">Yesterday</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+                <option value="range">Date Range</option>
+              </select>
+
+              <!-- DATE RANGE -->
+              <div id="dateRangeBox" class="hidden">
+                <input type="date" name="start_date" id="startDate">
+                <input type="date" name="end_date" id="endDate">
+              </div>
+
+              <!-- SUBMIT -->
+              <button type="submit" class="filter-btn">Search</button>
+
+            </form>
+
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Reference</th>
+                    <th>Amount</th>
+                    <th>Payment</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+
+                  <tr onclick="selectExpense('EXP-001')">
+                    <td class="link">EXP-001</td>
+                    <td>24 Oct</td>
+                    <td>Vehicle</td>
+                    <td>LP-9920</td>
+                    <td>45,200</td>
+                    <td><span class="badge neutral">Credit</span></td>
+                    <td><span class="badge pending">Pending</span></td>
+                  </tr>
+
+                  <tr onclick="selectExpense('EXP-002')">
+                    <td class="link">EXP-002</td>
+                    <td>24 Oct</td>
+                    <td>Office</td>
+                    <td>BILL-221</td>
+                    <td>1,250</td>
+                    <td><span class="badge paid">Cash</span></td>
+                    <td><span class="badge paid">Paid</span></td>
+                  </tr>
+                  <tr onclick="selectExpense('EXP-002')">
+                    <td class="link">EXP-002</td>
+                    <td>24 Oct</td>
+                    <td>Office</td>
+                    <td>BILL-221</td>
+                    <td>1,250</td>
+                    <td><span class="badge paid">Cash</span></td>
+                    <td><span class="badge paid">Paid</span></td>
+                  </tr>
+                  <tr onclick="selectExpense('EXP-002')">
+                    <td class="link">EXP-002</td>
+                    <td>24 Oct</td>
+                    <td>Office</td>
+                    <td>BILL-221</td>
+                    <td>1,250</td>
+                    <td><span class="badge paid">Cash</span></td>
+                    <td><span class="badge paid">Paid</span></td>
+                  </tr>
+                  <tr onclick="selectExpense('EXP-002')">
+                    <td class="link">EXP-002</td>
+                    <td>24 Oct</td>
+                    <td>Office</td>
+                    <td>BILL-221</td>
+                    <td>1,250</td>
+                    <td><span class="badge paid">Cash</span></td>
+                    <td><span class="badge paid">Paid</span></td>
+                  </tr>
+                  <tr onclick="selectExpense('EXP-002')">
+                    <td class="link">EXP-002</td>
+                    <td>24 Oct</td>
+                    <td>Office</td>
+                    <td>BILL-221</td>
+                    <td>1,250</td>
+                    <td><span class="badge paid">Cash</span></td>
+                    <td><span class="badge paid">Paid</span></td>
+                  </tr>
+                  <tr onclick="selectExpense('EXP-002')">
+                    <td class="link">EXP-002</td>
+                    <td>24 Oct</td>
+                    <td>Office</td>
+                    <td>BILL-221</td>
+                    <td>1,250</td>
+                    <td><span class="badge paid">Cash</span></td>
+                    <td><span class="badge paid">Paid</span></td>
+                  </tr>
+                  <tr onclick="selectExpense('EXP-002')">
+                    <td class="link">EXP-002</td>
+                    <td>24 Oct</td>
+                    <td>Office</td>
+                    <td>BILL-221</td>
+                    <td>1,250</td>
+                    <td><span class="badge paid">Cash</span></td>
+                    <td><span class="badge paid">Paid</span></td>
+                  </tr>
+                  <tr onclick="selectExpense('EXP-002')">
+                    <td class="link">EXP-002</td>
+                    <td>24 Oct</td>
+                    <td>Office</td>
+                    <td>BILL-221</td>
+                    <td>1,250</td>
+                    <td><span class="badge paid">Cash</span></td>
+                    <td><span class="badge paid">Paid</span></td>
+                  </tr>
+                  <tr onclick="selectExpense('EXP-002')">
+                    <td class="link">EXP-002</td>
+                    <td>24 Oct</td>
+                    <td>Office</td>
+                    <td>BILL-221</td>
+                    <td>1,250</td>
+                    <td><span class="badge paid">Cash</span></td>
+                    <td><span class="badge paid">Paid</span></td>
+                  </tr>
+                  <tr onclick="selectExpense('EXP-002')">
+                    <td class="link">EXP-002</td>
+                    <td>24 Oct</td>
+                    <td>Office</td>
+                    <td>BILL-221</td>
+                    <td>1,250</td>
+                    <td><span class="badge paid">Cash</span></td>
+                    <td><span class="badge paid">Paid</span></td>
+                  </tr>
+
+                </tbody>
+              </table>
+              <div class="pagination" id="pagination"></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT PANEL -->
+        <!-- RIGHT PANEL -->
+        <div class="expenses-right hidden" id="expensePanel">
+
+          <!-- HEADER -->
+          <div class="panel-header">
+            <h3 id="expTitle"></h3>
+            <button class="close-btn" onclick="closeExpense()">✖</button>
+          </div>
+
+          <!-- DATE -->
+          <div class="panel-sub">
+            <span>Date:</span>
+            <strong id="expDate"></strong>
+          </div>
+
+          <!-- CATEGORY + REF -->
+          <div class="panel-card">
+            <h4>Expense Info</h4>
+
+            <div class="row-line">
+              <span>Category</span>
+              <strong id="expCategory"></strong>
+            </div>
+
+            <div class="row-line">
+              <span>Reference</span>
+              <strong id="expRef"></strong>
+            </div>
+          </div>
+
+          <!-- FINANCIAL -->
+          <div class="panel-card highlight">
+            <h4>Financial</h4>
+
+            <div class="row-line">
+              <span>Amount</span>
+              <strong class="danger" id="expAmount"></strong>
+            </div>
+
+            <div class="row-line">
+              <span>Payment</span>
+              <strong id="expPayment"></strong>
+            </div>
+          </div>
+
+          <!-- STATUS -->
+          <div class="panel-card">
+            <h4>Status</h4>
+            <span class="badge" id="expStatus"></span>
+          </div>
+
+          <!-- ACTION -->
+          <div class="panel-actions">
+            <button class="edit-btn" onclick="openEditModal()">Edit Data</button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+    <!-- EDIT EXPENSE MODAL -->
+    <div id="editModal" class="modal-overlay hidden">
+
+      <div class="modal-box">
+
+        <button class="close-btn" onclick="closeEditModal()">✖</button>
+
+        <h3>Edit Expense</h3>
+
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="editDate">
+        </div>
+
+        <div class="form-group">
+          <label>Category</label>
+          <input type="text" id="editCategory">
+        </div>
+
+        <div class="form-group">
+          <label>Reference</label>
+          <input type="text" id="editRef">
+        </div>
+
+        <div class="form-group">
+          <label>Amount</label>
+          <input type="text" id="editAmount">
+        </div>
+
+        <div class="form-group">
+          <label>Payment</label>
+          <input type="text" id="editPayment">
+        </div>
+
+        <div class="form-group">
+          <label>Status</label>
+          <input type="text" id="editStatus">
+        </div>
+
+        <button class="save-btn" onclick="saveEdit()">Save Changes</button>
+
+      </div>
+
+    </div>
+
+    <div id="footer"></div>
+  </div>
+
+  <script src="../js/include.js"></script>
+  <script src="../js/expenses.js"></script>
+
+</body>
+
+</html>

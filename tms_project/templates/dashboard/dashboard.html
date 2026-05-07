@@ -1,0 +1,363 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+
+<style>
+
+@keyframes slideIn {
+
+    from {
+        opacity: 0;
+        transform: translate(-50%, -80px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+
+}
+
+</style>
+
+{% endblock extra_css %}
+
+
+{% block content %}
+
+{% if messages %}
+    {% for message in messages %}
+
+        <div id="success-popup" style="
+            position: fixed;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+
+            min-width: 450px;
+            max-width: 600px;
+
+            background: rgba(30, 136, 229, 0.82);
+            backdrop-filter: blur(8px);
+            color: white;
+
+            padding: 18px 24px;
+
+            border-radius: 14px;
+
+            box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            z-index: 9999;
+
+            font-size: 16px;
+            font-weight: 500;
+
+            animation: slideIn 0.4s ease;
+        ">
+
+            <!-- ICON -->
+            <div style="
+                width: 36px;
+                height: 36px;
+
+                border-radius: 50%;
+
+                background: rgba(255,255,255,0.2);
+
+                display: flex;
+                align-items: center;
+                justify-content: center;
+
+                font-size: 18px;
+            ">
+                ✅
+            </div>
+
+            <!-- MESSAGE -->
+            <div>
+                {{ message }}
+            </div>
+
+        </div>
+
+    {% endfor %}
+{% endif %}
+
+
+
+<div class="content">
+
+  <div class="dashboard-layout">
+
+    <!-- LEFT -->
+    <div class="dashboard-left">
+
+      <!-- HEADER -->
+      <div class="page-header">
+        <h2>Dashboard</h2>
+        <button class="primary-btn" onclick="location.href='../pages/builtyform.html'">
+          + Add New Builty
+        </button>
+      </div>
+
+      <!-- CARDS -->
+      <div class="cards full-width">
+        <div class="card">
+          <p>Total Builty</p>
+          <h3>42</h3>
+        </div>
+        <div class="card">
+          <p>Total Trips</p>
+          <h3>18</h3>
+        </div>
+        <div class="card">
+          <p>Income</p>
+          <h3>₹1.24L</h3>
+        </div>
+        <div class="card">
+          <p>Pending</p>
+          <h3>₹3.12L</h3>
+        </div>
+      </div>
+
+      <!-- TABLE + RIGHT SIDE -->
+      <div class="dashboard-bottom">
+
+        <!-- TABLE -->
+        <div class="table-section large-table">
+          <div class="table-header">
+            <h3>Recent Builty Records</h3>
+            <span class="view-all">View All</span>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Customer</th>
+                  <th>Route</th>
+                  <th>Freight</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+
+              <tbody>
+
+                <tr onclick="openDetail('BL-8802')">
+                  <td class="link">BL-8802</td>
+                  <td>Global Textiles</td>
+                  <td>Surat → Delhi</td>
+                  <td>₹45,000</td>
+                  <td><span class="badge partial">Partial</span></td>
+                </tr>
+
+                <tr onclick="openDetail('BL-8801')">
+                  <td class="link">BL-8801</td>
+                  <td>Reliance Retail</td>
+                  <td>Mumbai → Pune</td>
+                  <td>₹12,500</td>
+                  <td><span class="badge paid">Paid</span></td>
+                </tr>
+
+                <tr onclick="openDetail('BL-8799')">
+                  <td class="link">BL-8799</td>
+                  <td>Amazon Logistics</td>
+                  <td>Bangalore → Chennai</td>
+                  <td>₹32,000</td>
+                  <td><span class="badge unpaid">Unpaid</span></td>
+                </tr>
+                <tr onclick="openDetail('BL-8799')">
+                  <td class="link">BL-8799</td>
+                  <td>Amazon Logistics</td>
+                  <td>Bangalore → Chennai</td>
+                  <td>₹32,000</td>
+                  <td><span class="badge unpaid">Unpaid</span></td>
+                </tr>
+                <tr onclick="openDetail('BL-8799')">
+                  <td class="link">BL-8799</td>
+                  <td>Amazon Logistics</td>
+                  <td>Bangalore → Chennai</td>
+                  <td>₹32,000</td>
+                  <td><span class="badge unpaid">Unpaid</span></td>
+                </tr>
+                <tr onclick="openDetail('BL-8799')">
+                  <td class="link">BL-8799</td>
+                  <td>Amazon Logistics</td>
+                  <td>Bangalore → Chennai</td>
+                  <td>₹32,000</td>
+                  <td><span class="badge unpaid">Unpaid</span></td>
+                </tr>
+                <tr onclick="openDetail('BL-8799')">
+                  <td class="link">BL-8799</td>
+                  <td>Amazon Logistics</td>
+                  <td>Bangalore → Chennai</td>
+                  <td>₹32,000</td>
+                  <td><span class="badge unpaid">Unpaid</span></td>
+                </tr>
+                <tr onclick="openDetail('BL-8799')">
+                  <td class="link">BL-8799</td>
+                  <td>Amazon Logistics</td>
+                  <td>Bangalore → Chennai</td>
+                  <td>₹32,000</td>
+                  <td><span class="badge unpaid">Unpaid</span></td>
+                </tr>
+                <tr onclick="openDetail('BL-8799')">
+                  <td class="link">BL-8799</td>
+                  <td>Amazon Logistics</td>
+                  <td>Bangalore → Chennai</td>
+                  <td>₹32,000</td>
+                  <td><span class="badge unpaid">Unpaid</span></td>
+                </tr>
+                <tr onclick="openDetail('BL-8799')">
+                  <td class="link">BL-8799</td>
+                  <td>Amazon Logistics</td>
+                  <td>Bangalore → Chennai</td>
+                  <td>₹32,000</td>
+                  <td><span class="badge unpaid">Unpaid</span></td>
+                </tr>
+                <tr onclick="openDetail('BL-8799')">
+                  <td class="link">BL-8799</td>
+                  <td>Amazon Logistics</td>
+                  <td>Bangalore → Chennai</td>
+                  <td>₹32,000</td>
+                  <td><span class="badge unpaid">Unpaid</span></td>
+                </tr>
+                <tr onclick="openDetail('BL-8799')">
+                  <td class="link">BL-8799</td>
+                  <td>Amazon Logistics</td>
+                  <td>Bangalore → Chennai</td>
+                  <td>₹32,000</td>
+                  <td><span class="badge unpaid">Unpaid</span></td>
+                </tr>
+                <tr onclick="openDetail('BL-8799')">
+                  <td class="link">BL-8799</td>
+                  <td>Amazon Logistics</td>
+                  <td>Bangalore → Chennai</td>
+                  <td>₹32,000</td>
+                  <td><span class="badge unpaid">Unpaid</span></td>
+                </tr>
+                <tr onclick="openDetail('BL-8799')">
+                  <td class="link">BL-8799</td>
+                  <td>Amazon Logistics</td>
+                  <td>Bangalore → Chennai</td>
+                  <td>₹32,000</td>
+                  <td><span class="badge unpaid">Unpaid</span></td>
+                </tr>
+                <tr onclick="openDetail('BL-8799')">
+                  <td class="link">BL-8799</td>
+                  <td>Amazon Logistics</td>
+                  <td>Bangalore → Chennai</td>
+                  <td>₹32,000</td>
+                  <td><span class="badge unpaid">Unpaid</span></td>
+                </tr>
+                <tr onclick="openDetail('BL-8799')">
+                  <td class="link">BL-8799</td>
+                  <td>Amazon Logistics</td>
+                  <td>Bangalore → Chennai</td>
+                  <td>₹32,000</td>
+                  <td><span class="badge unpaid">Unpaid</span></td>
+                </tr>
+                <tr onclick="openDetail('BL-8799')">
+                  <td class="link">BL-8799</td>
+                  <td>Amazon Logistics</td>
+                  <td>Bangalore → Chennai</td>
+                  <td>₹32,000</td>
+                  <td><span class="badge unpaid">Unpaid</span></td>
+                </tr>
+
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" id="pagination"></div>
+        </div>
+
+        <!-- QUICK MANAGEMENT -->
+        <div class="card action-card">
+          <h3>Quick Management</h3>
+
+          <button onclick="location.href='../pages/builtyform.html'">Create New Builty</button>
+          <button onclick="location.href='../pages/customer_form.html'">Register Customer</button>
+          <button onclick="location.href='../pages/trip_form.html'">Assign Trip</button>
+          <button onclick="location.href='../pages/payments.html'">Record Payment</button>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- EDIT MODAL -->
+<div id="editModal" class="modal-overlay hidden">
+
+  <div class="modal-box">
+
+    <button class="close-btn" onclick="closeEditModal()">✖</button>
+
+    <h3>Edit Record</h3>
+
+    <div class="form-group">
+      <label>Customer</label>
+      <input type="text" id="editCustomer">
+    </div>
+
+    <div class="form-group">
+      <label>Route</label>
+      <input type="text" id="editRoute">
+    </div>
+
+    <div class="form-group">
+      <label>Freight</label>
+      <input type="text" id="editFreight">
+    </div>
+
+    <div class="form-group">
+      <label>Status</label>
+      <input type="text" id="editStatus">
+    </div>
+
+    <button class="save-btn" onclick="saveEdit()">Save Changes</button>
+
+  </div>
+
+</div>
+
+{% endblock content %}
+
+
+{% block extra_js %}
+<script src="{% static 'js/dashboard.js' %}"></script>
+
+<script>
+
+    // AUTO REMOVE POPUP
+    setTimeout(() => {
+
+        const popup = document.getElementById("success-popup");
+
+        if (popup) {
+
+            popup.style.transition = "all 0.5s ease";
+
+            popup.style.opacity = "0";
+            popup.style.transform = "translate(-50%, -80px)";
+
+            setTimeout(() => {
+                popup.remove();
+            }, 500);
+        }
+
+    }, 3000);
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,64 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- ================= META ================= -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- ================= TITLE ================= -->
+    <title>
+        {% block title %}
+            TMS - Transport Management System
+        {% endblock %}
+    </title>
+
+    <!-- ================= GLOBAL CSS ================= -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <!-- ================= PAGE SPECIFIC CSS ================= -->
+    {% block extra_css %}
+    {% endblock %}
+
+</head>
+
+<body>
+
+    <!-- ================= NAVBAR ================= -->
+    {% include 'partials/navbar.html' %}
+
+
+    <!-- ================= MAIN LAYOUT ================= -->
+    <div class="main-layout">
+
+        <!-- ================= SIDEBAR ================= -->
+        {% include 'partials/sidebar.html' %}
+
+
+        <!-- ================= PAGE CONTENT ================= -->
+        <main class="main-content">
+
+            {% block content %}
+            {% endblock %}
+
+        </main>
+
+    </div>
+
+
+    <!-- ================= FOOTER ================= -->
+    {% include 'partials/footer.html' %}
+
+
+    <!-- ================= GLOBAL JS ================= -->
+    <script src="{% static 'js/include.js' %}"></script>
+
+
+    <!-- ================= PAGE SPECIFIC JS ================= -->
+    {% block extra_js %}
+    {% endblock %}
+
+</body>
+
+</html>
