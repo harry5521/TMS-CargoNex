@@ -18,8 +18,10 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('tms-admin/', admin.site.urls),
-    path('tms-auth/', include('authsystem.urls')),
+    path('tms/admin/', admin.site.urls),
+    path('tms/auth/', include('authsystem.urls')),
     path('tms/', include('core.urls')),
-    path('tms-accounts/', include('accounts.urls')),
+    path('tms/customers/', include('customers.urls')),
+    path('tms/builty/', include('builty.urls')),
+    path('tms/accounts/', include('accounts.urls'))
 ]

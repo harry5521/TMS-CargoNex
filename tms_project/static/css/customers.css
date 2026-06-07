@@ -125,24 +125,40 @@ tbody tr:hover {
   font-weight: 600;
 }
 
-/* BADGES */
-.badge {
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
+/* COMMON BADGE STYLE */
+.balance-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 6px 14px;
+
+    border-radius: 30px;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    min-width: 80px;
+
+    letter-spacing: 0.3px;
 }
 
-/* CATEGORY COLORS */
-.badge {
-  background: #e3f2fd;
-  color: #1976d2;
+/* DUE */
+.due-badge {
+    background: #ffe5e5;
+    color: #c62828;
 }
 
-/* STATUS */
-.status-active {
-  color: #28a745;
-  font-weight: 600;
+/* ADVANCE */
+.advance-badge {
+    background: #e3f2fd;
+    color: #300cfc;
+}
+
+/* CLEAR */
+.clear-badge {
+    background: #e8f5e9;
+    color: #2e7d32;
 }
 
 /* RIGHT PANEL (overlay like dashboard) */
@@ -226,6 +242,7 @@ tbody tr:hover {
 .row-line {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 6px;
   font-size: 14px;
 }

@@ -51,7 +51,7 @@ textarea {
 }
 
 /* STATUS TOGGLE */
-.status-toggle {
+/* .status-toggle {
   display: flex;
   gap: 10px;
 }
@@ -68,7 +68,7 @@ textarea {
   background: #007bff;
   color: white;
   border: none;
-}
+} */
 
 /* ACTIONS */
 .form-actions {

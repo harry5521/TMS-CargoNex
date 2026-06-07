@@ -1,0 +1,101 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/customer_form.css' %}">
+{% endblock extra_css %}
+
+
+{% block content %}
+
+    <div class="content">
+
+      <div class="form-page">
+
+        <!-- HEADER -->
+        <div class="page-header">
+          <h2>Add Customer</h2>
+        </div>
+
+        <!-- FORM -->
+        <form method="POST" action="{% url 'customers:customer-create' %}" class="form-container">
+          {% csrf_token %}
+          <!-- BASIC INFO -->
+          <div class="form-card">
+            <h3>Basic Information</h3>
+
+            <div class="form-grid">
+
+              <div>
+                <label>Customer Name *</label>
+                <input type="text" name="company_name" id="name" placeholder="e.g. ABC Logistics" required>
+              </div>
+
+              <div>
+                <label>Customer Type</label>
+                <select name="customer_type" id="customer_type">
+                    <option value="regular">
+                        Regular
+                    </option>
+                    <option value="walkin">
+                        Walk-In
+                    </option>
+                </select>
+              </div>
+
+              <div>
+                <label>Phone Number</label>
+                <input type="text" name="phone" id="phone" placeholder="03xxxxxxxxx">
+              </div>
+
+              <div>
+                <label>Contact Person</label>
+                <input type="text" name="contact_person" id="contact_person" placeholder="e.g. Abu Huraira">
+              </div>
+
+              <div>
+                <label>CNIC / NTN</label>
+                <input type="text" name="cnic_ntn" id="cnic_ntn" placeholder="e.g. 12345-6789012-3">
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ADDITIONAL -->
+          <div class="form-card">
+            <h3>Additional Details</h3>
+
+            <div class="form-grid full">
+
+              <div>
+                <label>Address</label>
+                <input type="text" name="address" id="address" placeholder="Street, City, State">
+              </div>
+
+              <div>
+                <label>Internal Notes</label>
+                <textarea name="notes" id="notes" placeholder="Optional notes..."></textarea>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ACTIONS -->
+          <div class="form-actions">
+            <!-- <button type="reset" class="btn-light">Cancel</button> -->
+            <!-- <button type="button" class="btn-secondary">Save & Add Another</button> -->
+            <button type="submit" class="primary-btn">Save Customer</button>
+          </div>
+
+        </form>
+
+      </div>
+
+    </div>
+
+{% endblock content %}
+
+
+{% block extra_js %}
+  <script src="{% static 'js/customer_form.js' %}"></script>
+{% endblock extra_js %}

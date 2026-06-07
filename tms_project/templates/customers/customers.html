@@ -1,0 +1,437 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/customers.css' %}">
+{% endblock extra_css %}
+
+
+{% block content %}
+
+{% include "partials/alerts.html" %}
+
+<div class="content">
+
+  <div class="customer-layout">
+
+    <!-- LEFT -->
+    <div class="customer-left">
+
+      <!-- HEADER -->
+      <div class="page-header">
+        <h2>Customers</h2>
+        <a class="primary-btn" href="{% url 'customers:customer-create' %}">+ Add Customer</a>
+      </div>
+
+      <!-- CARDS -->
+      <div class="cards">
+        <div class="card">
+          <p>Total</p>
+          <h3>1,248</h3>
+        </div>
+        <div class="card">
+          <p>Regular</p>
+          <h3>142</h3>
+        </div>
+        <div class="card">
+          <p>Walk-in</p>
+          <h3>1,106</h3>
+        </div>
+        <div class="card">
+          <p>Pending Dues</p>
+          <h3>Rs. 425,800</h3>
+        </div>
+      </div>
+
+      <!-- FILTER -->
+      <div class="filter-section">
+
+    <form method="GET">
+
+        <div class="search-container">
+
+            <input
+                type="text"
+                name="search"
+                placeholder="Search by company, contact, or phone..."
+                value="{{ request.GET.search|default:'' }}"
+            >
+
+            <button type="submit">
+                Search
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+      <!-- TABLE -->
+      <div class="table-section">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Company</th>
+                <th>Contact Person</th>
+                <th>Phone</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for customer in customers %}
+              <tr
+                  data-customer-id="{{ customer.pk }}"
+                  data-id="{{ customer.customer_id }}"
+
+                  data-company="{{ customer.company_name }}"
+                  data-contact="{{ customer.contact_person }}"
+
+                  data-phone="{{ customer.phone }}"
+                  data-category="{{ customer.customer_type }}"
+
+                  data-cnic="{{ customer.cnic_ntn }}"
+                  data-address="{{ customer.address|default:''|escapejs }}"
+                  data-notes="{{ customer.notes|default:''|escapejs }}"
+
+                  data-balance="{{ customer.current_balance }}"
+                  data-balance-status="{{ customer.balance_status }}"
+              >
+                <td><span class="link" data-id="CUS-1024">{{ customer.customer_id }}</span></td>
+                <td>{{ customer.company_name }}</td>
+                <td> {% if customer.contact_person %}{{ customer.contact_person }} {% else %} N/A {% endif %}</td>
+                <td>  {% if customer.phone %}{{ customer.phone }}{% else %} --- {% endif %}</td>
+                <td>
+                  {% if customer.balance_status == "Due" %}
+                      <span class="balance-badge due-badge">
+                          {{ customer.balance_status }}
+                      </span>
+                  {% elif customer.balance_status == "Advance" %}
+                      <span class="balance-badge advance-badge">
+                          {{ customer.balance_status }}
+                      </span>
+                  {% else %}
+                      <span class="balance-badge clear-badge">
+                          {{ customer.balance_status }}
+                      </span>
+                  {% endif %}
+              </td>
+              </tr>
+
+              {% empty %}
+              <tr>
+                <td colspan="5" style="
+                text-align: center;
+                padding: 30px 20px;
+
+                color: #777;
+                font-size: 15px;
+                font-weight: 500;
+
+                background: #fafafa;
+            ">
+                  No customers found.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <div class="pagination" id="pagination"></div>
+        </div>
+      </div>
+
+      {% if is_paginated %}
+
+<div class="pagination">
+
+    {% if page_obj.has_previous %}
+
+        <a href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+            First
+        </a>
+
+        <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+            Previous
+        </a>
+
+    {% endif %}
+
+
+    <span>
+
+        Page {{ page_obj.number }}
+
+        of
+
+        {{ page_obj.paginator.num_pages }}
+
+    </span>
+
+
+    {% if page_obj.has_next %}
+
+        <a href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+            Next
+        </a>
+
+        <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+            Last
+        </a>
+
+    {% endif %}
+
+</div>
+
+{% endif %}
+
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="customer-right hidden" id="customerPanel">
+
+      <!-- HEADER -->
+      <div class="panel-header">
+        <h3 id="cTitle"></h3>
+        <button class="close-btn" onclick="closeCustomer()">✖</button>
+      </div>
+
+      <!-- BASIC INFO -->
+      <div class="panel-card">
+        <h4>Customer Info</h4>
+
+        <div class="row-line">
+          <span>Company</span>
+          <strong id="cCompany"></strong>
+        </div>
+
+        <div class="row-line">
+          <span>Contact Person</span>
+          <strong id="cContact"></strong>
+        </div>
+
+        <div class="row-line">
+          <span>Phone</span>
+          <strong id="cPhone"></strong>
+        </div>
+
+        <div class="row-line">
+          <span>CNIC / NTN</span>
+          <strong id="cCnic"></strong>
+        </div>
+      </div>
+
+      <!-- BUSINESS INFO -->
+      <div class="panel-card">
+        <h4>Business Details</h4>
+
+        <div class="row-line">
+          <span>Category</span>
+          <strong id="cCategory"></strong>
+        </div>
+
+        <div class="row-line">
+          <span>Total Builty</span>
+          <strong id="cBuilty"></strong>
+        </div>
+      </div>
+
+      <!-- FINANCIAL -->
+      <div class="panel-card highlight">
+        <h4>Financial</h4>
+
+        <div class="row-line">
+          <span>Balance</span>
+          <strong class="balance-badge" id="cBalance"></strong>
+        </div>
+      </div>
+
+      <!-- ADDRESS & NOTES -->
+<div class="panel-card">
+
+    <h4>Additional Details</h4>
+
+    <div style="
+        margin-bottom: 14px;
+    ">
+
+        <span style="
+            display: block;
+            margin-bottom: 6px;
+
+            font-size: 13px;
+            font-weight: 600;
+
+            color: #666;
+        ">
+            Address
+        </span>
+
+        <div id="cAddress" style="
+            background: #f8f9fb;
+
+            padding: 10px 12px;
+
+            border-radius: 8px;
+
+            font-size: 14px;
+
+            color: #444;
+
+            line-height: 1.5;
+        ">
+        </div>
+
+    </div>
+
+    <div>
+
+        <span style="
+            display: block;
+            margin-bottom: 6px;
+
+            font-size: 13px;
+            font-weight: 600;
+
+            color: #666;
+        ">
+            Notes
+        </span>
+
+        <div id="cNotes" style="
+            background: #f8f9fb;
+
+            padding: 10px 12px;
+
+            border-radius: 8px;
+
+            font-size: 14px;
+
+            color: #444;
+
+            line-height: 1.5;
+
+            min-height: 50px;
+        ">
+        </div>
+
+    </div>
+
+</div>
+
+      <!-- STATUS -->
+      <!-- <div class="panel-card">
+        <h4>Status</h4>
+        <span class="badge" id="cStatus"></span>
+      </div> -->
+
+      <!-- ACTION -->
+      <div class="panel-actions">
+        <button class="edit-btn" onclick="openEditModal()">Edit Data</button>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- EDIT CUSTOMER MODAL -->
+<div id="editModal" class="modal-overlay hidden">
+
+  <div class="modal-box">
+
+    <button class="close-btn" onclick="closeEditModal()">✖</button>
+
+    <h3>Edit Customer</h3>
+
+    <form id="editCustomerForm" method="POST">
+    {% csrf_token %}
+
+    <div class="form-group">
+        <label>Company</label>
+        <input
+            type="text"
+            id="editCompany"
+            name="company_name"
+            required
+        >
+    </div>
+
+    <div class="form-group">
+        <label>Contact Person</label>
+        <input
+            type="text"
+            id="editContact"
+            name="contact_person"
+        >
+    </div>
+
+    <div class="form-group">
+        <label>Phone</label>
+        <input
+            type="text"
+            id="editPhone"
+            name="phone"
+        >
+    </div>
+
+    <div class="form-group">
+        <label>CNIC / NTN</label>
+        <input
+            type="text"
+            id="editCnic"
+            name="cnic_ntn"
+        >
+    </div>
+
+    <div class="form-group">
+        <label>Address</label>
+        <input
+            type="text"
+            id="editAddress"
+            name="address"
+        >
+    </div>
+
+    <div class="form-group">
+        <label>Notes</label>
+        <textarea
+            id="editNotes"
+            name="notes"
+        ></textarea>
+    </div>
+
+    <div class="form-group">
+        <label>Category</label>
+        <select
+            id="editCategory"
+            name="customer_type"
+        >
+            <option value="regular">
+                Regular
+            </option>
+
+            <option value="walkin">
+                Walk-In
+            </option>
+        </select>
+    </div>
+
+    <button type="submit" class="save-btn">
+        Save Changes
+    </button>
+
+</form>
+
+  </div>
+
+</div>
+
+{% endblock content %}
+
+
+{% block extra_js %}
+<script src="{% static 'js/customers.js' %}"></script>
+{% endblock extra_js %}

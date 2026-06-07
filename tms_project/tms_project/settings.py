@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     # Internal apps
     'core',
     'authsystem',
+    'customers',
+    'builty',
     'accounts',
 ]
 

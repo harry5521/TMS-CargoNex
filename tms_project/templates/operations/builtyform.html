@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Create Builty</title>
+
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/builtyform.css">
+</head>
+
+<body onload="loadLayout()">
+
+  <div id="sidebar"></div>
+
+  <div class="main">
+    <div id="navbar"></div>
+
+    <div class="content">
+
+      <div class="form-page">
+
+        <!-- HEADER -->
+        <div class="page-header">
+          <h2>Create New Builty</h2>
+        </div>
+
+        <form class="form">
+
+          <!-- CUSTOMER -->
+          <div class="card-section">
+            <h3>Customer Information</h3>
+
+            <div class="grid-2">
+              <input placeholder="Customer Name">
+              <input placeholder="Phone Number">
+            </div>
+
+            <input placeholder="CNIC / NTN (Optional)">
+          </div>
+
+          <!-- RECEIVER -->
+          <div class="card-section">
+            <h3>Consignee (Receiver)</h3>
+
+            <div class="grid-2">
+              <input placeholder="Receiver Name">
+              <input placeholder="Receiver Phone">
+            </div>
+
+            <input placeholder="Destination City">
+          </div>
+
+          <!-- SHIPMENT -->
+          <div class="card-section">
+            <h3>Shipment Details</h3>
+
+            <div class="grid-2">
+              <input placeholder="Origin City">
+              <input placeholder="Destination City">
+            </div>
+
+            <input placeholder="Goods Description">
+
+            <div class="grid-2">
+              <input id="weight" placeholder="Weight">
+              <input placeholder="No. of Packages">
+            </div>
+          </div>
+
+          <!-- FREIGHT -->
+          <div class="card-section">
+            <h3>Freight Details</h3>
+
+            <div class="payment-toggle">
+              <button type="button" class="active">Paid</button>
+              <button type="button" class="active">To Pay</button>
+              <button type="button" class="active">Partial</button>
+            </div>
+
+            <div class="grid-3">
+              <input id="total" placeholder="Total Freight">
+              <input id="advance" placeholder="Advance">
+              <input id="remaining" placeholder="Remaining"  disabled>
+            </div>
+          </div>
+
+          <!-- VEHICLE -->
+          <div class="card-section">
+            <h3>Vehicle & Driver</h3>
+
+            <div class="grid-3">
+              <input placeholder="Vehicle Number">
+              <input placeholder="Driver Name">
+              <input placeholder="Driver Phone">
+            </div>
+          </div>
+
+          <!-- NOTES -->
+          <div class="card-section">
+            <h3>Additional Notes</h3>
+            <textarea placeholder="Enter notes..."></textarea>
+          </div>
+
+          <!-- ACTIONS -->
+          <div class="form-actions">
+            <button type="reset" class="secondary-btn">Reset</button>
+            <button type="submit" class="secondary-btn">Save & Print</button>
+            <button type="submit" class="primary-btn">Save Builty</button>
+          </div>
+
+        </form>
+
+      </div>
+
+    </div>
+
+    <div id="footer"></div>
+  </div>
+
+  <script src="../js/include.js"></script>
+  <script src="../js/builtyform.js"></script>
+
+</body>
+</html>
