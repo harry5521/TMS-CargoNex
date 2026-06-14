@@ -16,35 +16,90 @@
     <div class="accounts-left">
 
       <div class="page-header">
+
         <h2>Financial Ledger</h2>
-        <button class="primary-btn" onclick="exportCSV()">Export Data</button>
+
+        <div style="display:flex; gap:10px;">
+
+          <button class="secondary-btn">
+            Reports
+          </button>
+
+          <button class="secondary-btn" onclick="openCategoryModal()">
+            Manage Categories
+          </button>
+
+          <button class="primary-btn" onclick="openTransactionModal()">
+            + Add Transaction
+          </button>
+
+        </div>
+
       </div>
 
       <!-- CARDS -->
       <div class="cards">
         <div class="card">
           <p>Balance</p>
-          <h3>₹1,25,400</h3>
+          <h3>PKR {{ balance }}</h3>
         </div>
+
         <div class="card">
-          <p>Income</p>
-          <h3>₹8,45,000</h3>
+          <p>Cash In</p>
+          <h3>PKR {{ cash_in }}</h3>
         </div>
+
         <div class="card">
-          <p>Expenses</p>
-          <h3>₹7,19,600</h3>
+          <p>Cash Out</p>
+          <h3>PKR {{ cash_out }}</h3>
         </div>
+
         <div class="card">
-          <p>Profit</p>
-          <h3>₹1,25,400</h3>
+          <p>Total Transactions</p>
+          <h3>{{ page_obj.paginator.count }}</h3>
         </div>
       </div>
 
       <!-- FILTER -->
-      <div class="filter-bar">
-        <input type="text" id="searchInput" placeholder="Search transaction...">
-        <button onclick="searchTxn()">Search</button>
-      </div>
+      <form method="GET" class="filter-bar">
+
+        <input type="text" name="search" placeholder="Search transaction, customer, builty..." value="{{ search }}">
+
+        <select name="type">
+
+          <option value="">
+            All Types
+          </option>
+
+          <option value="cash_in" {% if selected_type == 'cash_in' %}selected{% endif %}>
+            Cash In
+          </option>
+
+          <option value="cash_out" {% if selected_type == 'cash_out' %}selected{% endif %}>
+            Cash Out
+          </option>
+
+        </select>
+
+        <select name="category">
+
+          <option value="">
+            All Categories
+          </option>
+
+          {% for category in categories %}
+          <option value="{{ category.id }}" {% if selected_category == category.id|stringformat:"s" %}selected{% endif %}>
+            {{ category.name }}
+          </option>
+          {% endfor %}
+
+        </select>
+
+        <button type="submit">
+          Search
+        </button>
+
+      </form>
 
       <!-- TABLE -->
       <div class="table-section">
@@ -56,40 +111,112 @@
               <tr>
                 <th>Txn ID</th>
                 <th>Date</th>
+                <th>Category</th>
+                <th>Customer</th>
+                <th>Builty</th>
                 <th>Type</th>
-                <th>Source</th>
-                <th>Reference</th>
                 <th>Amount</th>
-                <th>Balance</th>
               </tr>
             </thead>
 
-            <tbody id="txnBody">
+            <tbody>
 
-              <tr data-date="2024-05-20">
-                <td><span class="link" data-id="TXN-8821">TXN-8821</span></td>
-                <td>2024-05-20</td>
-                <td>Payment</td>
-                <td>Client</td>
-                <td>INV-5502</td>
-                <td class="credit">+₹45,000</td>
-                <td>₹1,25,400</td>
+              {% for txn in transactions %}
+
+              <tr data-txn-id="{{ txn.transaction_id }}" data-date="{{ txn.transaction_date }}"
+                data-category="{{ txn.category.name }}" data-type="{{ txn.get_transaction_type_display }}"
+                data-amount="{{ txn.amount }}" data-customer="{{ txn.customer.company_name|default:'' }}"
+                data-builty="{{ txn.builty.builty_no|default:'' }}" data-remarks="{{ txn.description }}">
+
+                <td>
+                  <span class="link">
+                    {{ txn.transaction_id }}
+                  </span>
+                </td>
+
+                <td>{{ txn.transaction_date }}</td>
+
+                <td>{{ txn.category.name }}</td>
+
+                <td>
+                  {{ txn.customer.company_name|default:'-' }}
+                </td>
+
+                <td>
+                  {{ txn.builty.builty_no|default:'-' }}
+                </td>
+
+                <td>
+                  {{ txn.get_transaction_type_display }}
+                </td>
+
+                <td class="{% if txn.transaction_type == 'cash_in' %}credit{% else %}debit{% endif %}">
+                  PKR {{ txn.amount }}
+                </td>
+
               </tr>
 
-              <tr data-date="2024-05-18">
-                <td><span class="link" data-id="TXN-8822">TXN-8822</span></td>
-                <td>2024-05-18</td>
-                <td>Expense</td>
-                <td>Trip Expense</td>
-                <td>TRIP-990</td>
-                <td class="debit">-₹12,000</td>
-                <td>₹1,13,400</td>
+              {% empty %}
+
+              <tr>
+                <td colspan="7">
+                  No transactions found.
+                </td>
               </tr>
+
+              {% endfor %}
 
             </tbody>
           </table>
           <div class="pagination" id="pagination"></div>
         </div>
+
+        {% if is_paginated %}
+
+      <div class="pagination">
+
+        {% if page_obj.has_previous %}
+
+        <a href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+          First
+        </a>
+
+        <a
+          href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+          Previous
+        </a>
+
+        {% endif %}
+
+
+        <span>
+
+          Page {{ page_obj.number }}
+
+          of
+
+          {{ page_obj.paginator.num_pages }}
+
+        </span>
+
+
+        {% if page_obj.has_next %}
+
+        <a
+          href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+          Next
+        </a>
+
+        <a
+          href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+          Last
+        </a>
+
+        {% endif %}
+
+      </div>
+
+      {% endif %}
       </div>
 
     </div>
@@ -97,25 +224,80 @@
     <!-- RIGHT PANEL -->
     <div class="accounts-right hidden" id="txnPanel">
 
-      <button class="close-btn" onclick="closeTxn()">✖</button>
+      <div class="panel-header">
 
-      <h3 id="txnTitle"></h3>
+        <h3 id="txnTitle"></h3>
 
-      <p><strong>Date:</strong> <span id="txnDate"></span></p>
-      <p><strong>Type:</strong> <span id="txnType"></span></p>
+        <button class="close-btn" onclick="closeTxn()">
+          ✖
+        </button>
 
-      <hr>
+      </div>
 
-      <p><strong>Source:</strong> <span id="txnSource"></span></p>
-      <p><strong>Reference:</strong> <span id="txnRef"></span></p>
 
-      <hr>
+      <div class="panel-card">
 
-      <p><strong>Amount:</strong> <span id="txnAmount"></span></p>
-      <p><strong>Balance:</strong> <span id="txnBalance"></span></p>
+        <h4>Transaction Details</h4>
 
-      <!-- EDIT BUTTON -->
-      <button class="edit-btn" onclick="openEditModal()">Edit Data</button>
+        <div class="row-line">
+          <span>Date</span>
+          <strong id="txnDate"></strong>
+        </div>
+
+        <div class="row-line">
+          <span>Category</span>
+          <strong id="txnCategory"></strong>
+        </div>
+
+        <div class="row-line">
+          <span>Type</span>
+          <strong id="txnType"></strong>
+        </div>
+
+        <div class="row-line">
+          <span>Amount</span>
+          <strong id="txnAmount"></strong>
+        </div>
+
+      </div>
+
+
+      <div class="panel-card">
+
+        <h4>Related Information</h4>
+
+        <div class="row-line">
+          <span>Customer</span>
+          <strong id="txnCustomer"></strong>
+        </div>
+
+        <div class="row-line">
+          <span>Builty</span>
+          <strong id="txnBuilty"></strong>
+        </div>
+
+      </div>
+
+
+      <div class="panel-card">
+
+        <h4>Remarks</h4>
+
+        <p id="txnRemarks" style="
+            margin-top:10px;
+            color:#555;
+            line-height:1.6;
+        "></p>
+
+      </div>
+
+      <div class="panel-actions">
+
+        <button class="category-edit-btn" onclick="openEditModal()">
+          Edit Transaction
+        </button>
+
+      </div>
 
     </div>
 
@@ -124,50 +306,256 @@
 </div>
 
 
-<!-- EDIT MODAL -->
-<div id="editModal" class="modal-overlay hidden">
+<!-- CATEGORY MODAL -->
+<div id="categoryModal" class="modal-overlay hidden">
 
-  <div class="modal-box">
+  <div class="modal-box large-modal">
 
-    <button class="close-btn" onclick="closeEditModal()">✖</button>
+    <button class="close-btn" onclick="closeCategoryModal()">
+      ✖
+    </button>
 
-    <h3>Edit Transaction</h3>
+    <h3>Manage Categories</h3>
 
-    <div class="form-group">
-      <label>Date</label>
-      <input type="date" id="editDate">
-    </div>
-
-    <div class="form-group">
-      <label>Type</label>
-      <input type="text" id="editType">
-    </div>
+    <!-- ADD CATEGORY -->
 
     <div class="form-group">
-      <label>Source</label>
-      <input type="text" id="editSource">
+
+      <label>
+        Category Name
+      </label>
+
+      <div class="inline-form">
+
+        <input type="text" id="categoryName" placeholder="Enter category name">
+
+        <button type="button" class="primary-btn" style="font-weight:bold;">
+          Add
+        </button>
+
+      </div>
+
     </div>
 
-    <div class="form-group">
-      <label>Reference</label>
-      <input type="text" id="editRef">
-    </div>
+    <!-- CATEGORY LIST -->
 
-    <div class="form-group">
-      <label>Amount</label>
-      <input type="text" id="editAmount">
-    </div>
+    <div class="category-list">
 
-    <div class="form-group">
-      <label>Balance</label>
-      <input type="text" id="editBalance">
-    </div>
+      <h4 style="margin-bottom: 10px;">Existing Categories</h4>
 
-    <button class="save-btn" onclick="saveEdit()">Save Changes</button>
+      <table class="simple-table">
+
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th width="200" style="text-align:center;">
+              Action
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr>
+            <td>
+              Fuel Expense
+            </td>
+            <td width="120">
+              <button class="category-edit-btn">
+                Edit
+              </button>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Fuel Expense
+            </td>
+            <td width="120">
+              <button class="category-edit-btn">
+                Edit
+              </button>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Fuel Expense
+            </td>
+            <td width="120">
+              <button class="category-edit-btn">
+                Edit
+              </button>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Fuel Expense
+            </td>
+            <td width="120">
+              <button class="category-edit-btn">
+                Edit
+              </button>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Fuel Expense
+            </td>
+            <td width="120">
+              <button class="category-edit-btn">
+                Edit
+              </button>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Fuel Expense
+            </td>
+            <td width="120">
+              <button class="category-edit-btn">
+                Edit
+              </button>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Fuel Expense
+            </td>
+            <td width="120">
+              <button class="category-edit-btn">
+                Edit
+              </button>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Fuel Expense
+            </td>
+            <td width="120">
+              <button class="category-edit-btn">
+                Edit
+              </button>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Fuel Expense
+            </td>
+            <td width="120">
+              <button class="category-edit-btn">
+                Edit
+              </button>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Fuel Expense
+            </td>
+            <td width="120">
+              <button class="category-edit-btn">
+                Edit
+              </button>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Fuel Expense
+            </td>
+            <td width="120">
+              <button class="category-edit-btn">
+                Edit
+              </button>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Fuel Expense
+            </td>
+            <td width="120">
+              <button class="category-edit-btn">
+                Edit
+              </button>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Fuel Expense
+            </td>
+            <td width="120">
+              <button class="category-edit-btn">
+                Edit
+              </button>
+            </td>
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
 
   </div>
 
 </div>
+
+
+<!-- TRANSACTION MODAL -->
+<div id="transactionModal" class="modal-overlay hidden">
+
+  <div class="modal-box large-modal">
+
+    <button class="close-btn" onclick="closeTransactionModal()">
+      ✖
+    </button>
+
+    <h3>Add Transaction</h3>
+
+    <!-- BULK ROWS -->
+
+    <div id="transactionRows">
+
+      <div class="transaction-row">
+
+        <button type="button" class="remove-row-btn" onclick="removeTransactionRow(this)">
+          ✖
+        </button>
+
+        <select>
+          <option>Cash In</option>
+          <option>Cash Out</option>
+        </select>
+
+        <select>
+          <option>Select Category</option>
+        </select>
+
+        <input class="full-width" type="number" placeholder="Amount">
+
+        <input class="full-width" type="text" placeholder="Remarks">
+
+      </div>
+
+    </div>
+
+    <div style="
+                display:flex;
+                gap:10px;
+                margin-top:15px;
+            ">
+
+      <button type="button" class="secondary-btn" onclick="addTransactionRow()">
+        + Add Row
+      </button>
+
+      <button type="button" class="primary-btn">
+        Save Transactions
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
 
 {% endblock content %}
 

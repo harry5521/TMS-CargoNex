@@ -1,25 +1,181 @@
 // AUTO CALCULATION
-const total = document.getElementById("total");
-const advance = document.getElementById("advance");
-const remaining = document.getElementById("remaining");
+const freight =
+  document.getElementById(
+    "totalFreight"
+  );
 
-function calculate() {
-  const t = parseFloat(total.value) || 0;
-  const a = parseFloat(advance.value) || 0;
-  remaining.value = t - a;
+const advance =
+  document.getElementById(
+    "advanceAmount"
+  );
+
+const remaining =
+  document.getElementById(
+    "remainingAmount"
+  );
+
+
+function calculateRemaining() {
+
+  const total =
+    parseFloat(
+      freight.value
+    ) || 0;
+
+  const adv =
+    parseFloat(
+      advance.value
+    ) || 0;
+
+  remaining.value =
+    total - adv;
 }
 
-total.addEventListener("input", calculate);
-advance.addEventListener("input", calculate);
+
+freight.addEventListener(
+  "input",
+  calculateRemaining
+);
+
+advance.addEventListener(
+  "input",
+  calculateRemaining
+);
 
 
 
-// PAYMENT TOGGLE
-document.querySelectorAll(".payment-toggle button").forEach(btn => {
-  btn.addEventListener("click", function () {
-    document.querySelectorAll(".payment-toggle button").forEach(b => b.classList.remove("active"));
-    this.classList.add("active");
-  });
-});
-// Select the first button and click it to trigger the logic
-document.querySelector(".payment-toggle button")?.click();
+// Customer search
+let selectedCustomer = null;
+
+const searchInput =
+  document.getElementById(
+    "customerSearch"
+  );
+
+const suggestions =
+  document.getElementById(
+    "customerSuggestions"
+  );
+
+let searchTimer;
+
+
+searchInput.addEventListener(
+    "input",
+    function () {
+
+        clearTimeout(searchTimer);
+
+        const query = this.value.trim();
+
+        searchTimer = setTimeout(() => {
+
+            searchCustomers(query);
+
+        }, 300);
+
+    }
+);
+
+async function searchCustomers(query) {
+
+    selectedCustomer = null;
+
+    document
+        .getElementById("customerId")
+        .value = "";
+
+    if (!query) {
+
+        suggestions.innerHTML = "";
+
+        suggestions.style.display = "none";
+
+        return;
+    }
+
+    const response = await fetch(
+        `/tms/builty/customer-search/?q=${query}`
+    );
+
+    const customers =
+        await response.json();
+
+    suggestions.innerHTML = "";
+
+    suggestions.style.display =
+        customers.length ? "block" : "none";
+
+    customers.forEach(customer => {
+
+        const div =
+            document.createElement("div");
+
+        div.className =
+            "suggestion-item";
+
+        div.innerText =
+            customer.company_name;
+
+        div.onclick = () => {
+
+            selectedCustomer = customer;
+
+            searchInput.value =
+                customer.company_name;
+
+            document
+                .getElementById("customerId")
+                .value =
+                customer.id;
+
+            document
+                .getElementById("customerPhone")
+                .value =
+                customer.phone || "";
+
+            document
+                .getElementById("customerCnic")
+                .value =
+                customer.cnic || "";
+
+            suggestions.innerHTML = "";
+
+            suggestions.style.display = "none";
+        };
+
+        suggestions.appendChild(div);
+
+    });
+
+}
+
+// Form validation
+document
+  .querySelector(".form")
+  .addEventListener(
+    "submit",
+    function (e) {
+
+      if (!selectedCustomer) {
+
+        e.preventDefault();
+
+        searchInput.style.border =
+          "1px solid #d32f2f";
+
+        searchInput.style.background =
+          "#fff5f5";
+
+        document
+          .getElementById(
+            "customerError"
+          )
+          .style.display =
+          "block";
+
+        return;
+      }
+
+    }
+  );

@@ -1,135 +1,217 @@
-const transactions = {
-  "TXN-8821": {
-    date: "2024-05-20",
-    type: "Payment",
-    source: "Client",
-    ref: "INV-5502",
-    amount: "+₹45,000",
-    balance: "₹1,25,400"
-  },
-  "TXN-8822": {
-    date: "2024-05-18",
-    type: "Expense",
-    source: "Trip Expense",
-    ref: "TRIP-990",
-    amount: "-₹12,000",
-    balance: "₹1,13,400"
-  }
-};
+// ======================================
+// RIGHT PANEL
+// ======================================
 
-let currentTxnId = null;
+let currentRow = null;
 
-/* ROW CLICK */
-document.addEventListener("click", function(e){
-  const row = e.target.closest("tr");
+document.addEventListener("click", function (e) {
 
-  if (row) {
-    const link = row.querySelector(".link");
-    if (link) {
-      selectTxn(link.dataset.id);
-    }
-  }
+    const row = e.target.closest("tbody tr");
+
+    if (!row) return;
+
+    currentRow = row;
+
+    openTransactionPanel(row);
+
 });
 
-function selectTxn(id){
-  const t = transactions[id];
-  if(!t) return;
 
-  currentTxnId = id;
+function openTransactionPanel(row) {
 
-  document.getElementById("txnPanel").classList.remove("hidden");
+    document
+        .getElementById("txnPanel")
+        .classList
+        .remove("hidden");
 
-  document.getElementById("txnTitle").innerText = id + " Details";
-  document.getElementById("txnDate").innerText = t.date;
-  document.getElementById("txnType").innerText = t.type;
-  document.getElementById("txnSource").innerText = t.source;
-  document.getElementById("txnRef").innerText = t.ref;
-  document.getElementById("txnAmount").innerText = t.amount;
-  document.getElementById("txnBalance").innerText = t.balance;
+    
+    document.getElementById("txnTitle").innerText =
+        row.dataset.txnId;
+
+    document.getElementById("txnDate").innerText =
+        row.dataset.date;
+
+    document.getElementById("txnCategory").innerText =
+        row.dataset.category;
+
+    document.getElementById("txnType").innerText =
+        row.dataset.type;
+
+    document.getElementById("txnAmount").innerText =
+        "PKR " + row.dataset.amount;
+
+    document.getElementById("txnCustomer").innerText =
+        row.dataset.customer || "-";
+
+    document.getElementById("txnBuilty").innerText =
+        row.dataset.builty || "-";
+
+    document.getElementById("txnRemarks").innerText =
+        row.dataset.remarks || "-";
 }
 
-function closeTxn(){
-  document.getElementById("txnPanel").classList.add("hidden");
+
+function closeTxn() {
+
+    document
+        .getElementById("txnPanel")
+        .classList
+        .add("hidden");
 }
 
-/* EDIT MODAL */
-function openEditModal(){
-  const t = transactions[currentTxnId];
 
-  document.getElementById("editModal").classList.remove("hidden");
 
-  document.getElementById("editDate").value = t.date;
-  document.getElementById("editType").value = t.type;
-  document.getElementById("editSource").value = t.source;
-  document.getElementById("editRef").value = t.ref;
-  document.getElementById("editAmount").value = t.amount;
-  document.getElementById("editBalance").value = t.balance;
+// ======================================
+// CATEGORY MODAL
+// ======================================
+
+function openCategoryModal() {
+
+    document
+        .getElementById("categoryModal")
+        .classList
+        .remove("hidden");
 }
 
-function closeEditModal(){
-  document.getElementById("editModal").classList.add("hidden");
+
+function closeCategoryModal() {
+
+    document
+        .getElementById("categoryModal")
+        .classList
+        .add("hidden");
 }
 
-function saveEdit(){
 
-  const t = transactions[currentTxnId];
 
-  t.date = document.getElementById("editDate").value;
-  t.type = document.getElementById("editType").value;
-  t.source = document.getElementById("editSource").value;
-  t.ref = document.getElementById("editRef").value;
-  t.amount = document.getElementById("editAmount").value;
-  t.balance = document.getElementById("editBalance").value;
+// ======================================
+// TRANSACTION MODAL
+// ======================================
 
-  selectTxn(currentTxnId);
+function openTransactionModal() {
 
-  const rows = document.querySelectorAll("#txnBody tr");
+    document
+        .getElementById("transactionModal")
+        .classList
+        .remove("hidden");
+}
 
-  rows.forEach(row => {
-    const id = row.querySelector(".link").dataset.id;
 
-    if(id === currentTxnId){
-      row.cells[1].innerText = t.date;
-      row.cells[2].innerText = t.type;
-      row.cells[3].innerText = t.source;
-      row.cells[4].innerText = t.ref;
-      row.cells[5].innerText = t.amount;
-      row.cells[6].innerText = t.balance;
+function closeTransactionModal() {
+
+    document
+        .getElementById("transactionModal")
+        .classList
+        .add("hidden");
+}
+
+
+
+// ======================================
+// ADD BULK ROW
+// ======================================
+
+function addTransactionRow() {
+
+    const container =
+        document.getElementById(
+            "transactionRows"
+        );
+
+    const row =
+        document.createElement("div");
+
+    row.className =
+        "transaction-row";
+
+    row.innerHTML = `
+
+        <button
+            type="button"
+            class="remove-row-btn"
+            onclick="removeTransactionRow(this)"
+        >
+            ✖
+        </button>
+
+        <select>
+
+            <option value="cash_in">
+                Cash In
+            </option>
+
+            <option value="cash_out">
+                Cash Out
+            </option>
+
+        </select>
+
+        <select>
+
+            <option>
+                Select Category
+            </option>
+
+        </select>
+
+        <input
+            class="full-width"
+            type="number"
+            placeholder="Amount"
+        >
+
+        <input
+            class="full-width"
+            type="text"
+            placeholder="Remarks"
+        >
+    `;
+
+    container.appendChild(row);
+}
+
+function removeTransactionRow(button) {
+
+    const container =
+        document.getElementById(
+            "transactionRows"
+        );
+
+    const rows =
+        container.querySelectorAll(
+            ".transaction-row"
+        );
+
+    // Keep at least one row
+
+    if (rows.length === 1) {
+        return;
     }
-  });
 
-  closeEditModal();
+    button
+        .closest(".transaction-row")
+        .remove();
 }
 
-/* SEARCH */
-function searchTxn(){
-  const input = document.getElementById("searchInput").value.toUpperCase();
-  const rows = document.querySelectorAll("#txnBody tr");
 
-  rows.forEach(row => {
-    const id = row.querySelector(".link").innerText;
-    row.style.display = id.includes(input) ? "" : "none";
-  });
-}
+// ======================================
+// CLOSE MODAL ON BACKDROP CLICK
+// ======================================
 
-/* EXPORT CSV */
-function exportCSV(){
-  let csv = [];
-  const rows = document.querySelectorAll("table tr");
+document.addEventListener("click", function (e) {
 
-  rows.forEach(row => {
-    let cols = row.querySelectorAll("td, th");
-    let data = [];
+    if (
+        e.target.id === "categoryModal"
+    ) {
 
-    cols.forEach(col => data.push(col.innerText));
-    csv.push(data.join(","));
-  });
+        closeCategoryModal();
+    }
 
-  const blob = new Blob([csv.join("\n")], { type: "text/csv" });
-  const url = window.URL.createObjectURL(blob);
+    if (
+        e.target.id === "transactionModal"
+    ) {
 
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "transactions.csv";
-  a.click();
-}
+        closeTransactionModal();
+    }
+
+});

@@ -210,3 +210,34 @@ tbody tr:hover {
   font-size: 18px;
   cursor: pointer;
 }
+
+
+
+
+
+
+/* Form Group */
+/* FORM */
+.form-group {
+  margin-top: 12px;
+}
+
+.form-group input, textarea, select {
+  width: 100%;
+  padding: 8px;
+  margin: 5px 0;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+/* SAVE */
+.save-btn {
+  width: 100%;
+  margin-top: 15px;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background: #007bff;
+  color: white;
+  font-weight: 600;
+}

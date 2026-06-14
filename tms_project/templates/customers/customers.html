@@ -44,28 +44,18 @@
       </div>
 
       <!-- FILTER -->
-      <div class="filter-section">
 
-    <form method="GET">
+      <form method="GET" class="filter-bar">
 
-        <div class="search-container">
+        <input type="text" name="search" placeholder="Search by company, contact, or phone..."
+          value="{{ request.GET.search|default:'' }}">
 
-            <input
-                type="text"
-                name="search"
-                placeholder="Search by company, contact, or phone..."
-                value="{{ request.GET.search|default:'' }}"
-            >
+        <button type="submit">
+          Search
+        </button>
 
-            <button type="submit">
-                Search
-            </button>
+      </form>
 
-        </div>
-
-    </form>
-
-</div>
       <!-- TABLE -->
       <div class="table-section">
         <div class="table-wrapper">
@@ -82,42 +72,31 @@
 
             <tbody>
               {% for customer in customers %}
-              <tr
-                  data-customer-id="{{ customer.pk }}"
-                  data-id="{{ customer.customer_id }}"
-
-                  data-company="{{ customer.company_name }}"
-                  data-contact="{{ customer.contact_person }}"
-
-                  data-phone="{{ customer.phone }}"
-                  data-category="{{ customer.customer_type }}"
-
-                  data-cnic="{{ customer.cnic_ntn }}"
-                  data-address="{{ customer.address|default:''|escapejs }}"
-                  data-notes="{{ customer.notes|default:''|escapejs }}"
-
-                  data-balance="{{ customer.current_balance }}"
-                  data-balance-status="{{ customer.balance_status }}"
-              >
+              <tr data-customer-id="{{ customer.pk }}" data-id="{{ customer.customer_id }}"
+                data-company="{{ customer.company_name }}" data-contact="{{ customer.contact_person }}"
+                data-phone="{{ customer.phone }}" data-category="{{ customer.customer_type }}"
+                data-cnic="{{ customer.cnic_ntn }}" data-address="{{ customer.address|default:''|escapejs }}"
+                data-notes="{{ customer.notes|default:''|escapejs }}" data-balance="{{ customer.current_balance }}"
+                data-balance-status="{{ customer.balance_status }}">
                 <td><span class="link" data-id="CUS-1024">{{ customer.customer_id }}</span></td>
                 <td>{{ customer.company_name }}</td>
                 <td> {% if customer.contact_person %}{{ customer.contact_person }} {% else %} N/A {% endif %}</td>
-                <td>  {% if customer.phone %}{{ customer.phone }}{% else %} --- {% endif %}</td>
+                <td> {% if customer.phone %}{{ customer.phone }}{% else %} --- {% endif %}</td>
                 <td>
                   {% if customer.balance_status == "Due" %}
-                      <span class="balance-badge due-badge">
-                          {{ customer.balance_status }}
-                      </span>
+                  <span class="balance-badge due-badge">
+                    {{ customer.balance_status }}
+                  </span>
                   {% elif customer.balance_status == "Advance" %}
-                      <span class="balance-badge advance-badge">
-                          {{ customer.balance_status }}
-                      </span>
+                  <span class="balance-badge advance-badge">
+                    {{ customer.balance_status }}
+                  </span>
                   {% else %}
-                      <span class="balance-badge clear-badge">
-                          {{ customer.balance_status }}
-                      </span>
+                  <span class="balance-badge clear-badge">
+                    {{ customer.balance_status }}
+                  </span>
                   {% endif %}
-              </td>
+                </td>
               </tr>
 
               {% empty %}
@@ -144,47 +123,50 @@
 
       {% if is_paginated %}
 
-<div class="pagination">
+      <div class="pagination">
 
-    {% if page_obj.has_previous %}
+        {% if page_obj.has_previous %}
 
         <a href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
-            First
+          First
         </a>
 
-        <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
-            Previous
+        <a
+          href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+          Previous
         </a>
 
-    {% endif %}
+        {% endif %}
 
 
-    <span>
+        <span>
 
-        Page {{ page_obj.number }}
+          Page {{ page_obj.number }}
 
-        of
+          of
 
-        {{ page_obj.paginator.num_pages }}
+          {{ page_obj.paginator.num_pages }}
 
-    </span>
+        </span>
 
 
-    {% if page_obj.has_next %}
+        {% if page_obj.has_next %}
 
-        <a href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
-            Next
+        <a
+          href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+          Next
         </a>
 
-        <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
-            Last
+        <a
+          href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+          Last
         </a>
 
-    {% endif %}
+        {% endif %}
 
-</div>
+      </div>
 
-{% endif %}
+      {% endif %}
 
     </div>
 
@@ -248,15 +230,15 @@
       </div>
 
       <!-- ADDRESS & NOTES -->
-<div class="panel-card">
+      <div class="panel-card">
 
-    <h4>Additional Details</h4>
+        <h4>Additional Details</h4>
 
-    <div style="
+        <div style="
         margin-bottom: 14px;
     ">
 
-        <span style="
+          <span style="
             display: block;
             margin-bottom: 6px;
 
@@ -266,9 +248,9 @@
             color: #666;
         ">
             Address
-        </span>
+          </span>
 
-        <div id="cAddress" style="
+          <div id="cAddress" style="
             background: #f8f9fb;
 
             padding: 10px 12px;
@@ -281,13 +263,13 @@
 
             line-height: 1.5;
         ">
+          </div>
+
         </div>
 
-    </div>
+        <div>
 
-    <div>
-
-        <span style="
+          <span style="
             display: block;
             margin-bottom: 6px;
 
@@ -297,9 +279,9 @@
             color: #666;
         ">
             Notes
-        </span>
+          </span>
 
-        <div id="cNotes" style="
+          <div id="cNotes" style="
             background: #f8f9fb;
 
             padding: 10px 12px;
@@ -314,11 +296,11 @@
 
             min-height: 50px;
         ">
+          </div>
+
         </div>
 
-    </div>
-
-</div>
+      </div>
 
       <!-- STATUS -->
       <!-- <div class="panel-card">
@@ -347,83 +329,56 @@
     <h3>Edit Customer</h3>
 
     <form id="editCustomerForm" method="POST">
-    {% csrf_token %}
+      {% csrf_token %}
 
-    <div class="form-group">
+      <div class="form-group">
         <label>Company</label>
-        <input
-            type="text"
-            id="editCompany"
-            name="company_name"
-            required
-        >
-    </div>
+        <input type="text" id="editCompany" name="company_name" required>
+      </div>
 
-    <div class="form-group">
+      <div class="form-group">
         <label>Contact Person</label>
-        <input
-            type="text"
-            id="editContact"
-            name="contact_person"
-        >
-    </div>
+        <input type="text" id="editContact" name="contact_person">
+      </div>
 
-    <div class="form-group">
+      <div class="form-group">
         <label>Phone</label>
-        <input
-            type="text"
-            id="editPhone"
-            name="phone"
-        >
-    </div>
+        <input type="text" id="editPhone" name="phone">
+      </div>
 
-    <div class="form-group">
+      <div class="form-group">
         <label>CNIC / NTN</label>
-        <input
-            type="text"
-            id="editCnic"
-            name="cnic_ntn"
-        >
-    </div>
+        <input type="text" id="editCnic" name="cnic_ntn">
+      </div>
 
-    <div class="form-group">
+      <div class="form-group">
         <label>Address</label>
-        <input
-            type="text"
-            id="editAddress"
-            name="address"
-        >
-    </div>
+        <input type="text" id="editAddress" name="address">
+      </div>
 
-    <div class="form-group">
+      <div class="form-group">
         <label>Notes</label>
-        <textarea
-            id="editNotes"
-            name="notes"
-        ></textarea>
-    </div>
+        <textarea id="editNotes" name="notes"></textarea>
+      </div>
 
-    <div class="form-group">
+      <div class="form-group">
         <label>Category</label>
-        <select
-            id="editCategory"
-            name="customer_type"
-        >
-            <option value="regular">
-                Regular
-            </option>
+        <select id="editCategory" name="customer_type">
+          <option value="regular">
+            Regular
+          </option>
 
-            <option value="walkin">
-                Walk-In
-            </option>
+          <option value="walkin">
+            Walk-In
+          </option>
         </select>
-    </div>
+      </div>
 
-    <button type="submit" class="save-btn">
+      <button type="submit" class="save-btn">
         Save Changes
-    </button>
+      </button>
 
-</form>
+    </form>
 
   </div>
 

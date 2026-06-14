@@ -44,28 +44,6 @@
   gap: 20px;
 }
 
-/* FILTER */
-.filter-bar {
-  display: flex;
-  gap: 10px;
-}
-
-.filter-bar input {
-  flex: 1;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-}
-
-.filter-btn {
-  padding: 10px 15px;
-  border-radius: 8px;
-  border: none;
-  background: #007bff;
-  color: white;
-  cursor: pointer;
-}
-
 /* TABLE */
 .table-section {
   background: #fff;

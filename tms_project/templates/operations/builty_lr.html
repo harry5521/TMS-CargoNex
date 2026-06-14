@@ -8,52 +8,49 @@
 
 {% block content %}
 
-    <div class="content">
+{% include "partials/alerts.html" %}
 
-      <div class="builty-layout">
+<div class="content">
+
+    <div class="builty-layout">
 
         <!-- LEFT -->
         <div class="builty-left">
 
-          <div class="page-header">
-            <h2>Builty Management</h2>
-            <button class="primary-btn" onclick="location.href='../pages/builtyform.html'">
-              + Create Builty
-            </button>
-          </div>
+            <div class="page-header">
+                <h2>Builty Management</h2>
+                <a class="primary-btn" href="{% url 'builty:builty_create' %}">
+                    + Create Builty
+                </a>
+            </div>
 
-          <div class="cards">
-            <div class="card">
-              <p>Total Builty</p>
-              <h3>1,284</h3>
+            <div class="cards">
+                <div class="card">
+                    <p>Total Builty</p>
+                    <h3>1,284</h3>
+                </div>
+                <div class="card">
+                    <p>Pending Dispatch</p>
+                    <h3>42</h3>
+                </div>
+                <div class="card">
+                    <p>In Transit</p>
+                    <h3>156</h3>
+                </div>
+                <div class="card">
+                    <p>Completed Today</p>
+                    <h3>18</h3>
+                </div>
             </div>
-            <div class="card">
-              <p>Pending Dispatch</p>
-              <h3>42</h3>
-            </div>
-            <div class="card">
-              <p>In Transit</p>
-              <h3>156</h3>
-            </div>
-            <div class="card">
-              <p>Completed Today</p>
-              <h3>18</h3>
-            </div>
-          </div>
 
-          <!-- TABLE -->
-          <div class="table-section">
-
-            <form method="GET" class="global-filter">
+            <form method="GET" class="filter-bar">
 
               <!-- SEARCH -->
-              <div class="search-box">
-                <span class="search-icon">🔍</span>
                 <input type="text" name="q" placeholder="Search ID, customer..." value="{{ request.GET.q }}">
-              </div>
+              
 
               <!-- FILTER SELECT -->
-              <select name="filter" id="filterSelect" onchange="handleFilterChange()">
+              <select style="width: 110px;" name="filter" id="filterSelect" onchange="handleFilterChange()">
                 <option value="">All</option>
                 <option value="today" selected>Today</option>
                 <option value="yesterday">Yesterday</option>
@@ -69,391 +66,324 @@
               </div>
 
               <!-- SUBMIT -->
-              <button type="submit" class="filter-btn">Search</button>
+              <button type="submit" >Search</button>
 
             </form>
 
-            <div class="table-wrapper">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Builty No</th>
-                    <th>Date</th>
-                    <th>Customer</th>
-                    <th>Route</th>
-                    <th>Freight</th>
-                    <th>Advance</th>
-                    <th>Remaining</th>
-                    <th>Payment</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
+            <!-- TABLE -->
+            <div class="table-section">
 
-                <tbody>
 
-                  <tr data-id="LR-88291">
-                    <td><span class="link">LR-88291</span></td>
-                    <td>24 May</td>
-                    <td>Global Exports</td>
-                    <td>Mumbai → Delhi</td>
-                    <td>₹45,000</td>
-                    <td>₹15,000</td>
-                    <td class="danger">₹30,000</td>
-                    <td><span class="badge partial">Partial</span></td>
-                    <td><span class="badge neutral">Not Assigned</span></td>
-                  </tr>
-                  <tr data-id="LR-88292">
-                    <td><span class="link">LR-88292</span></td>
-                    <td>24 May</td>
-                    <td>Adani Logistics</td>
-                    <td>Ahmedabad → Chennai</td>
-                    <td>₹62000</td>
-                    <td>₹62000</td>
-                    <td class="danger">₹0</td>
-                    <td><span class="badge partial">full</span></td>
-                    <td><span class="badge neutral">In Transit</span></td>
-                  </tr>
-                  <tr data-id="LR-88292">
-                    <td><span class="link">LR-88292</span></td>
-                    <td>24 May</td>
-                    <td>Adani Logistics</td>
-                    <td>Ahmedabad → Chennai</td>
-                    <td>₹62000</td>
-                    <td>₹62000</td>
-                    <td class="danger">₹0</td>
-                    <td><span class="badge partial">full</span></td>
-                    <td><span class="badge neutral">In Transit</span></td>
-                  </tr>
-                  <tr data-id="LR-88292">
-                    <td><span class="link">LR-88292</span></td>
-                    <td>24 May</td>
-                    <td>Adani Logistics</td>
-                    <td>Ahmedabad → Chennai</td>
-                    <td>₹62000</td>
-                    <td>₹62000</td>
-                    <td class="danger">₹0</td>
-                    <td><span class="badge partial">full</span></td>
-                    <td><span class="badge neutral">In Transit</span></td>
-                  </tr>
-                  <tr data-id="LR-88292">
-                    <td><span class="link">LR-88292</span></td>
-                    <td>24 May</td>
-                    <td>Adani Logistics</td>
-                    <td>Ahmedabad → Chennai</td>
-                    <td>₹62000</td>
-                    <td>₹62000</td>
-                    <td class="danger">₹0</td>
-                    <td><span class="badge partial">full</span></td>
-                    <td><span class="badge neutral">In Transit</span></td>
-                  </tr>
-                  <tr data-id="LR-88292">
-                    <td><span class="link">LR-88292</span></td>
-                    <td>24 May</td>
-                    <td>Adani Logistics</td>
-                    <td>Ahmedabad → Chennai</td>
-                    <td>₹62000</td>
-                    <td>₹62000</td>
-                    <td class="danger">₹0</td>
-                    <td><span class="badge partial">full</span></td>
-                    <td><span class="badge neutral">In Transit</span></td>
-                  </tr>
-                  <tr data-id="LR-88292">
-                    <td><span class="link">LR-88292</span></td>
-                    <td>24 May</td>
-                    <td>Adani Logistics</td>
-                    <td>Ahmedabad → Chennai</td>
-                    <td>₹62000</td>
-                    <td>₹62000</td>
-                    <td class="danger">₹0</td>
-                    <td><span class="badge partial">full</span></td>
-                    <td><span class="badge neutral">In Transit</span></td>
-                  </tr>
-                  <tr data-id="LR-88292">
-                    <td><span class="link">LR-88292</span></td>
-                    <td>24 May</td>
-                    <td>Adani Logistics</td>
-                    <td>Ahmedabad → Chennai</td>
-                    <td>₹62000</td>
-                    <td>₹62000</td>
-                    <td class="danger">₹0</td>
-                    <td><span class="badge partial">full</span></td>
-                    <td><span class="badge neutral">In Transit</span></td>
-                  </tr>
-                  <tr data-id="LR-88292">
-                    <td><span class="link">LR-88292</span></td>
-                    <td>24 May</td>
-                    <td>Adani Logistics</td>
-                    <td>Ahmedabad → Chennai</td>
-                    <td>₹62000</td>
-                    <td>₹62000</td>
-                    <td class="danger">₹0</td>
-                    <td><span class="badge partial">full</span></td>
-                    <td><span class="badge neutral">In Transit</span></td>
-                  </tr>
-                  <tr data-id="LR-88292">
-                    <td><span class="link">LR-88292</span></td>
-                    <td>24 May</td>
-                    <td>Adani Logistics</td>
-                    <td>Ahmedabad → Chennai</td>
-                    <td>₹62000</td>
-                    <td>₹62000</td>
-                    <td class="danger">₹0</td>
-                    <td><span class="badge partial">full</span></td>
-                    <td><span class="badge neutral">In Transit</span></td>
-                  </tr>
-                  <tr data-id="LR-88292">
-                    <td><span class="link">LR-88292</span></td>
-                    <td>24 May</td>
-                    <td>Adani Logistics</td>
-                    <td>Ahmedabad → Chennai</td>
-                    <td>₹62000</td>
-                    <td>₹62000</td>
-                    <td class="danger">₹0</td>
-                    <td><span class="badge partial">full</span></td>
-                    <td><span class="badge neutral">In Transit</span></td>
-                  </tr>
-                  <tr data-id="LR-88292">
-                    <td><span class="link">LR-88292</span></td>
-                    <td>24 May</td>
-                    <td>Adani Logistics</td>
-                    <td>Ahmedabad → Chennai</td>
-                    <td>₹62000</td>
-                    <td>₹62000</td>
-                    <td class="danger">₹0</td>
-                    <td><span class="badge partial">full</span></td>
-                    <td><span class="badge neutral">In Transit</span></td>
-                  </tr>
-                  <tr data-id="LR-88292">
-                    <td><span class="link">LR-88292</span></td>
-                    <td>24 May</td>
-                    <td>Adani Logistics</td>
-                    <td>Ahmedabad → Chennai</td>
-                    <td>₹62000</td>
-                    <td>₹62000</td>
-                    <td class="danger">₹0</td>
-                    <td><span class="badge partial">full</span></td>
-                    <td><span class="badge neutral">In Transit</span></td>
-                  </tr>
-                  <tr data-id="LR-88292">
-                    <td><span class="link">LR-88292</span></td>
-                    <td>24 May</td>
-                    <td>Adani Logistics</td>
-                    <td>Ahmedabad → Chennai</td>
-                    <td>₹62000</td>
-                    <td>₹62000</td>
-                    <td class="danger">₹0</td>
-                    <td><span class="badge partial">full</span></td>
-                    <td><span class="badge neutral">In Transit</span></td>
-                  </tr>
-                  <tr data-id="LR-88292">
-                    <td><span class="link">LR-88292</span></td>
-                    <td>24 May</td>
-                    <td>Adani Logistics</td>
-                    <td>Ahmedabad → Chennai</td>
-                    <td>₹62000</td>
-                    <td>₹62000</td>
-                    <td class="danger">₹0</td>
-                    <td><span class="badge partial">full</span></td>
-                    <td><span class="badge neutral">In Transit</span></td>
-                  </tr>
-                  <tr data-id="LR-88292">
-                    <td><span class="link">LR-88292</span></td>
-                    <td>24 May</td>
-                    <td>Adani Logistics</td>
-                    <td>Ahmedabad → Chennai</td>
-                    <td>₹62000</td>
-                    <td>₹62000</td>
-                    <td class="danger">₹0</td>
-                    <td><span class="badge partial">full</span></td>
-                    <td><span class="badge neutral">In Transit</span></td>
-                  </tr>
-                  <tr data-id="LR-88292">
-                    <td><span class="link">LR-88292</span></td>
-                    <td>24 May</td>
-                    <td>Adani Logistics</td>
-                    <td>Ahmedabad → Chennai</td>
-                    <td>₹62000</td>
-                    <td>₹62000</td>
-                    <td class="danger">₹0</td>
-                    <td><span class="badge partial">full</span></td>
-                    <td><span class="badge neutral">In Transit</span></td>
-                  </tr>
-                  <tr data-id="LR-88292">
-                    <td><span class="link">LR-88292</span></td>
-                    <td>24 May</td>
-                    <td>Adani Logistics</td>
-                    <td>Ahmedabad → Chennai</td>
-                    <td>₹62000</td>
-                    <td>₹62000</td>
-                    <td class="danger">₹0</td>
-                    <td><span class="badge partial">full</span></td>
-                    <td><span class="badge neutral">In Transit</span></td>
-                  </tr>
-                  <tr data-id="LR-88292">
-                    <td><span class="link">LR-88292</span></td>
-                    <td>24 May</td>
-                    <td>Adani Logistics</td>
-                    <td>Ahmedabad → Chennai</td>
-                    <td>₹62000</td>
-                    <td>₹62000</td>
-                    <td class="danger">₹0</td>
-                    <td><span class="badge partial">full</span></td>
-                    <td><span class="badge neutral">In Transit</span></td>
-                  </tr>
-                  <tr data-id="LR-88292">
-                    <td><span class="link">LR-88292</span></td>
-                    <td>24 May</td>
-                    <td>Adani Logistics</td>
-                    <td>Ahmedabad → Chennai</td>
-                    <td>₹62000</td>
-                    <td>₹62000</td>
-                    <td class="danger">₹0</td>
-                    <td><span class="badge partial">full</span></td>
-                    <td><span class="badge neutral">In Transit</span></td>
-                  </tr>
-                  <tr data-id="LR-88292">
-                    <td><span class="link">LR-88292</span></td>
-                    <td>24 May</td>
-                    <td>Adani Logistics</td>
-                    <td>Ahmedabad → Chennai</td>
-                    <td>₹62000</td>
-                    <td>₹62000</td>
-                    <td class="danger">₹0</td>
-                    <td><span class="badge partial">full</span></td>
-                    <td><span class="badge neutral">In Transit</span></td>
-                  </tr>
-                  <tr data-id="LR-88292">
-                    <td><span class="link">LR-88292</span></td>
-                    <td>24 May</td>
-                    <td>Adani Logistics</td>
-                    <td>Ahmedabad → Chennai</td>
-                    <td>₹62000</td>
-                    <td>₹62000</td>
-                    <td class="danger">₹0</td>
-                    <td><span class="badge partial">full</span></td>
-                    <td><span class="badge neutral">In Transit</span></td>
-                  </tr>
-                </tbody>
-              </table>
-              <div class="pagination" id="pagination"></div>
 
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Builty No</th>
+                                <th>Customer</th>
+                                <th>Route</th>
+                                <th>Payment</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            {% for builty in builties %}
+
+                            <tr data-builty-id="{{ builty.pk }}" data-no="{{ builty.builty_no }}"
+                                data-date="{{ builty.builty_date|date:'d M Y' }}"
+                                data-customer="{{ builty.customer.company_name }}"
+                                data-phone="{{ builty.customer.phone }}" data-route="{{ builty.route }}"
+                                data-receiver="{{ builty.receiver_name }}"
+                                data-receiver-phone="{{ builty.receiver_phone }}"
+                                data-freight="{{ builty.freight_amount }}" data-advance="{{ builty.advance_amount }}"
+                                data-remaining="{{ builty.remaining_amount }}"
+                                data-payment="{{ builty.get_payment_status_display }}"
+                                data-dispatch="{{ builty.get_dispatch_status_display }}"
+                                data-vehicle="{{ builty.vehicle_number }}" data-driver="{{ builty.driver_name }}"
+                                data-driver-phone="{{ builty.driver_phone }}"
+                                data-notes="{{ builty.notes|default:''|escapejs }}">
+
+                                <!-- BUILTY NO -->
+                                <td>
+                                    <span class="link">
+                                        {{ builty.builty_no }}
+                                    </span>
+                                </td>
+
+                                <!-- CUSTOMER -->
+                                <td>
+                                    {{ builty.customer.company_name }}
+                                </td>
+
+                                <!-- ROUTE -->
+                                <td>
+                                    {{ builty.route }}
+                                </td>
+
+                                <!-- PAYMENT STATUS -->
+                                <td>
+
+                                    {% if builty.payment_status == 'paid' %}
+
+                                    <span class="balance-badge clear-badge">
+                                        Paid
+                                    </span>
+
+                                    {% elif builty.payment_status == 'partial' %}
+
+                                    <span class="balance-badge advance-badge">
+                                        Partial
+                                    </span>
+
+                                    {% else %}
+
+                                    <span class="balance-badge due-badge">
+                                        To Pay
+                                    </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <!-- DISPATCH STATUS -->
+                                <td>
+
+                                    {% if builty.dispatch_status == 'completed' %}
+
+                                    <span class="balance-badge clear-badge">
+                                        Completed
+                                    </span>
+
+                                    {% elif builty.dispatch_status == 'transit' %}
+
+                                    <span class="balance-badge advance-badge">
+                                        In Transit
+                                    </span>
+
+                                    {% else %}
+
+                                    <span class="balance-badge due-badge">
+                                        Pending
+                                    </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <!-- DATE -->
+                                <td>
+                                    {{ builty.builty_date|date:"d M Y" }}
+                                </td>
+
+                            </tr>
+
+                            {% empty %}
+
+                            <tr>
+                                <td colspan="6" style="
+            text-align:center;
+            padding:30px;
+            color:#777;
+            font-weight:500;
+        ">
+                                    No Builty Records Found.
+                                </td>
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+                    </table>
+                    <div class="pagination" id="pagination"></div>
+
+                </div>
             </div>
-          </div>
 
         </div>
 
         <!-- RIGHT PANEL -->
         <div class="builty-right hidden" id="builtyPanel">
 
-          <!-- HEADER -->
-          <div class="panel-header">
-            <h3 id="builtyTitle"></h3>
-            <button class="close-btn" onclick="closeBuilty()">✖</button>
-          </div>
-
-          <!-- DATE -->
-          <div class="panel-sub">
-            <span>Date:</span>
-            <strong id="bDate"></strong>
-          </div>
-
-          <!-- CUSTOMER -->
-          <div class="panel-card">
-            <h4>Customer</h4>
-            <p id="bCustomer"></p>
-          </div>
-
-          <!-- ROUTE -->
-          <div class="panel-card">
-            <h4>Route</h4>
-            <p id="bRoute"></p>
-          </div>
-
-          <!-- FINANCIAL -->
-          <div class="panel-card highlight">
-            <h4>Financial Summary</h4>
-
-            <div class="row-line">
-              <span>Freight</span>
-              <strong id="bFreight"></strong>
+            <!-- HEADER -->
+            <div class="panel-header">
+                <h3 id="builtyTitle"></h3>
+                <button class="close-btn" onclick="closeBuilty()">✖</button>
             </div>
 
-            <div class="row-line">
-              <span>Advance</span>
-              <strong id="bAdvance"></strong>
+            <!-- DATE -->
+            <div class="panel-sub">
+                <span>Date:</span>
+                <strong id="bDate"></strong>
             </div>
 
-            <div class="row-line">
-              <span>Remaining</span>
-              <strong class="danger" id="bRemaining"></strong>
+            <!-- CUSTOMER -->
+            <div class="panel-card">
+
+                <h4>Customer Information</h4>
+
+                <div class="row-line">
+                    <span>Company</span>
+                    <strong id="bCustomer"></strong>
+                </div>
+
+                <div class="row-line">
+                    <span>Phone</span>
+                    <strong id="bPhone"></strong>
+                </div>
+
             </div>
-          </div>
 
-          <!-- STATUS -->
-          <div class="panel-card">
-            <h4>Status</h4>
-            <span class="badge" id="bStatus"></span>
-          </div>
+            <!-- ROUTE -->
+            <div class="panel-card">
 
-          <!-- ACTION -->
-          <div class="panel-actions">
-            <button class="edit-btn" onclick="openEditModal()">Edit Data</button>
-          </div>
+                <h4>Shipment Information</h4>
+
+                <div class="row-line">
+                    <span>Route</span>
+                    <strong id="bRoute"></strong>
+                </div>
+
+                <div class="row-line">
+                    <span>Receiver</span>
+                    <strong id="bReceiver"></strong>
+                </div>
+
+                <div class="row-line">
+                    <span>Receiver Phone</span>
+                    <strong id="bReceiverPhone"></strong>
+                </div>
+
+            </div>
+
+            <!-- FINANCIAL -->
+            <div class="panel-card highlight">
+
+                <h4>Financial Summary</h4>
+
+                <div class="row-line">
+                    <span>Freight</span>
+                    <strong id="bFreight"></strong>
+                </div>
+
+                <div class="row-line">
+                    <span>Advance</span>
+                    <strong id="bAdvance"></strong>
+                </div>
+
+                <div class="row-line">
+                    <span>Remaining</span>
+                    <strong class="danger" id="bRemaining"></strong>
+                </div>
+
+                <div class="row-line">
+                    <span>Payment</span>
+                    <strong id="bPaymentStatus"></strong>
+                </div>
+
+                <div class="row-line">
+                    <span>Status</span>
+                    <strong id="bDispatchStatus"></strong>
+                </div>
+
+            </div>
+
+            <!-- VEHICLE -->
+            <div class="panel-card">
+
+                <h4>Vehicle & Driver</h4>
+
+                <div class="row-line">
+                    <span>Vehicle</span>
+                    <strong id="bVehicle"></strong>
+                </div>
+
+                <div class="row-line">
+                    <span>Driver</span>
+                    <strong id="bDriver"></strong>
+                </div>
+
+                <div class="row-line">
+                    <span>Driver Phone</span>
+                    <strong id="bDriverPhone"></strong>
+                </div>
+
+            </div>
+
+            <!-- NOTES -->
+            <div class="panel-card">
+
+                <h4>Notes</h4>
+
+                <div id="bNotes" style="
+            background:#f8f9fb;
+            padding:12px;
+            font-size:13px;
+            border-radius:8px;
+            min-height:50px;
+            line-height:1.5;
+            color:#444;
+        ">
+                </div>
+
+            </div>
 
         </div>
 
-      </div>
-
     </div>
-    <!-- EDIT BUILTY MODAL -->
-    <div id="editModal" class="modal-overlay hidden">
 
-      <div class="modal-box">
+</div>
+<!-- EDIT BUILTY MODAL -->
+<div id="editModal" class="modal-overlay hidden">
+
+    <div class="modal-box">
 
         <button class="close-btn" onclick="closeEditModal()">✖</button>
 
         <h3>Edit Builty</h3>
 
         <div class="form-group">
-          <label>Date</label>
-          <input type="text" id="editDate">
+            <label>Date</label>
+            <input type="text" id="editDate">
         </div>
 
         <div class="form-group">
-          <label>Customer</label>
-          <input type="text" id="editCustomer">
+            <label>Customer</label>
+            <input type="text" id="editCustomer">
         </div>
 
         <div class="form-group">
-          <label>Route</label>
-          <input type="text" id="editRoute">
+            <label>Route</label>
+            <input type="text" id="editRoute">
         </div>
 
         <div class="form-group">
-          <label>Freight</label>
-          <input type="number" id="editFreight">
+            <label>Freight</label>
+            <input type="number" id="editFreight">
         </div>
 
         <div class="form-group">
-          <label>Advance</label>
-          <input type="number" id="editAdvance">
+            <label>Advance</label>
+            <input type="number" id="editAdvance">
         </div>
 
         <div class="form-group">
-          <label>Remaining</label>
-          <input type="number" id="editRemaining">
+            <label>Remaining</label>
+            <input type="number" id="editRemaining">
         </div>
 
         <div class="form-group">
-          <label>Status</label>
-          <input type="text" id="editStatus">
+            <label>Status</label>
+            <input type="text" id="editStatus">
         </div>
 
         <button class="save-btn" onclick="saveEdit()">Save Changes</button>
 
-      </div>
-
     </div>
+
+</div>
 
 
 {% endblock content %}

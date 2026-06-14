@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from customers.models import Customer
 
 
@@ -6,8 +7,14 @@ class Builty(models.Model):
 
     PAYMENT_STATUS = (
         ('paid', 'Paid'),
-        ('topay', 'To Pay'),
         ('partial', 'Partial'),
+        ('topay', 'To Pay'),
+    )
+
+    DISPATCH_STATUS = (
+        ('pending', 'Pending Dispatch'),
+        ('transit', 'In Transit'),
+        ('completed', 'Completed'),
     )
 
     # =========================
@@ -16,7 +23,8 @@ class Builty(models.Model):
 
     builty_no = models.CharField(
         max_length=20,
-        unique=True
+        unique=True,
+        blank=True
     )
 
     customer = models.ForeignKey(
@@ -25,8 +33,10 @@ class Builty(models.Model):
         related_name='builties'
     )
 
+    builty_date = models.DateField(default=timezone.now)
+
     # =========================
-    # CONSIGNEE (RECEIVER)
+    # CONSIGNEE
     # =========================
 
     receiver_name = models.CharField(
@@ -34,11 +44,13 @@ class Builty(models.Model):
     )
 
     receiver_phone = models.CharField(
-        max_length=20
+        max_length=20,
+        blank=True,
+        null=True
     )
 
     # =========================
-    # SHIPMENT DETAILS
+    # ROUTE
     # =========================
 
     origin_city = models.CharField(
@@ -49,20 +61,26 @@ class Builty(models.Model):
         max_length=100
     )
 
-    goods_description = models.TextField()
+    # =========================
+    # SHIPMENT
+    # =========================
+
+    goods_description = models.CharField(
+        max_length=255
+    )
 
     weight = models.DecimalField(
         max_digits=10,
         decimal_places=2
     )
 
-    package_count = models.PositiveIntegerField()
+    package_count = models.PositiveIntegerField(null=True, blank=True)
 
     # =========================
-    # FREIGHT DETAILS
+    # FREIGHT
     # =========================
 
-    total_freight = models.DecimalField(
+    freight_amount = models.DecimalField(
         max_digits=12,
         decimal_places=2
     )
@@ -83,6 +101,16 @@ class Builty(models.Model):
         max_length=10,
         choices=PAYMENT_STATUS,
         default='topay'
+    )
+
+    # =========================
+    # DISPATCH
+    # =========================
+
+    dispatch_status = models.CharField(
+        max_length=15,
+        choices=DISPATCH_STATUS,
+        default='pending'
     )
 
     # =========================
@@ -128,8 +156,40 @@ class Builty(models.Model):
         auto_now=True
     )
 
-    class Meta:
-        ordering = ['-created_at']
+    @property
+    def route(self):
+        return f"{self.origin_city} → {self.destination_city}"
+
+    def save(self, *args, **kwargs):
+
+        if not self.builty_no:
+
+            last_builty = (
+                Builty.objects
+                .order_by('-id')
+                .first()
+            )
+
+            if last_builty:
+
+                last_number = int(
+                    last_builty.builty_no.split('-')[1]
+                )
+
+                next_number = last_number + 1
+
+            else:
+
+                next_number = 1001
+
+            self.builty_no = f"BLT-{next_number}"
+
+        self.remaining_amount = (
+            self.freight_amount -
+            self.advance_amount
+        )
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.builty_no} - {self.customer.name}"
+        return self.builty_no
