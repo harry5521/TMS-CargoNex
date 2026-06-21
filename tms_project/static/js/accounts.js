@@ -6,7 +6,10 @@ let currentRow = null;
 
 document.addEventListener("click", function (e) {
 
-    const row = e.target.closest("tbody tr");
+    const row =
+        e.target.closest(
+            "#txnBody tr"
+        );
 
     if (!row) return;
 
@@ -24,8 +27,10 @@ function openTransactionPanel(row) {
         .classList
         .remove("hidden");
 
-    
     document.getElementById("txnTitle").innerText =
+        row.dataset.txnId;
+
+    document.getElementById("txnId").innerText =
         row.dataset.txnId;
 
     document.getElementById("txnDate").innerText =
@@ -47,9 +52,8 @@ function openTransactionPanel(row) {
         row.dataset.builty || "-";
 
     document.getElementById("txnRemarks").innerText =
-        row.dataset.remarks || "-";
+        row.dataset.remarks || "No remarks";
 }
-
 
 function closeTxn() {
 
@@ -73,6 +77,28 @@ function openCategoryModal() {
         .remove("hidden");
 }
 
+function editCategory(
+    id,
+    name
+) {
+
+    document
+        .getElementById("categoryId")
+        .value = id;
+
+    document
+        .getElementById("categoryName")
+        .value = name;
+
+    document
+        .getElementById("categorySubmitBtn")
+        .innerText = "Update";
+
+    document
+        .getElementById("categoryName")
+        .focus();
+}
+
 
 function closeCategoryModal() {
 
@@ -80,8 +106,82 @@ function closeCategoryModal() {
         .getElementById("categoryModal")
         .classList
         .add("hidden");
+
+    document
+        .getElementById("categoryId")
+        .value = "";
+
+    document
+        .getElementById("categoryName")
+        .value = "";
+
+    document
+        .getElementById("categorySubmitBtn")
+        .innerText = "Add";
 }
 
+
+// Save Category using Ajax
+document
+    .getElementById("categoryForm")
+    .addEventListener(
+        "submit",
+        async function (e) {
+
+            e.preventDefault();
+
+            const formData =
+                new FormData(this);
+
+            const response =
+                await fetch(
+                    "/tms/accounts/categories/save/",
+                    {
+                        method: "POST",
+                        body: formData,
+                        headers: {
+                            "X-CSRFToken":
+                                document.querySelector(
+                                    "[name=csrfmiddlewaretoken]"
+                                ).value
+                        }
+                    }
+                );
+
+            const data =
+                await response.json();
+
+            if (data.success) {
+
+    localStorage.setItem(
+        "reopenCategoryModal",
+        "true"
+    );
+
+    window.location.reload();
+}
+        }
+    );
+
+window.addEventListener(
+    "load",
+    function () {
+
+        if (
+            localStorage.getItem(
+                "reopenCategoryModal"
+            ) === "true"
+        ) {
+
+            openCategoryModal();
+
+            localStorage.removeItem(
+                "reopenCategoryModal"
+            );
+        }
+
+    }
+);
 
 
 // ======================================
@@ -134,7 +234,7 @@ function addTransactionRow() {
             ✖
         </button>
 
-        <select>
+        <select name="transaction_type">
 
             <option value="cash_in">
                 Cash In
@@ -146,23 +246,29 @@ function addTransactionRow() {
 
         </select>
 
-        <select>
+        <select name="category">
 
-            <option>
+            <option value="">
                 Select Category
             </option>
+
+            ${window.categoryOptions || ""}
 
         </select>
 
         <input
             class="full-width"
             type="number"
+            step="0.01"
+            name="amount"
             placeholder="Amount"
+            required
         >
 
         <input
             class="full-width"
             type="text"
+            name="remarks"
             placeholder="Remarks"
         >
     `;
@@ -215,3 +321,4 @@ document.addEventListener("click", function (e) {
     }
 
 });
+

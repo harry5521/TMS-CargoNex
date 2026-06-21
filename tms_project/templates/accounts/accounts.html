@@ -8,6 +8,8 @@
 
 {% block content %}
 
+{% include "partials/alerts.html" %}
+
 <div class="content">
 
   <div class="accounts-layout">
@@ -112,21 +114,19 @@
                 <th>Txn ID</th>
                 <th>Date</th>
                 <th>Category</th>
-                <th>Customer</th>
-                <th>Builty</th>
                 <th>Type</th>
                 <th>Amount</th>
               </tr>
             </thead>
 
-            <tbody>
+            <tbody id="txnBody">
 
               {% for txn in transactions %}
 
               <tr data-txn-id="{{ txn.transaction_id }}" data-date="{{ txn.transaction_date }}"
                 data-category="{{ txn.category.name }}" data-type="{{ txn.get_transaction_type_display }}"
                 data-amount="{{ txn.amount }}" data-customer="{{ txn.customer.company_name|default:'' }}"
-                data-builty="{{ txn.builty.builty_no|default:'' }}" data-remarks="{{ txn.description }}">
+                data-builty="{{ txn.builty.builty_no|default:'' }}" data-remarks="{{ txn.remarks|default:'' }}">
 
                 <td>
                   <span class="link">
@@ -137,14 +137,6 @@
                 <td>{{ txn.transaction_date }}</td>
 
                 <td>{{ txn.category.name }}</td>
-
-                <td>
-                  {{ txn.customer.company_name|default:'-' }}
-                </td>
-
-                <td>
-                  {{ txn.builty.builty_no|default:'-' }}
-                </td>
 
                 <td>
                   {{ txn.get_transaction_type_display }}
@@ -173,50 +165,50 @@
 
         {% if is_paginated %}
 
-      <div class="pagination">
+        <div class="pagination">
 
-        {% if page_obj.has_previous %}
+          {% if page_obj.has_previous %}
 
-        <a href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
-          First
-        </a>
+          <a href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+            First
+          </a>
 
-        <a
-          href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
-          Previous
-        </a>
+          <a
+            href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+            Previous
+          </a>
+
+          {% endif %}
+
+
+          <span>
+
+            Page {{ page_obj.number }}
+
+            of
+
+            {{ page_obj.paginator.num_pages }}
+
+          </span>
+
+
+          {% if page_obj.has_next %}
+
+          <a
+            href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+            Next
+          </a>
+
+          <a
+            href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+            Last
+          </a>
+
+          {% endif %}
+
+        </div>
 
         {% endif %}
-
-
-        <span>
-
-          Page {{ page_obj.number }}
-
-          of
-
-          {{ page_obj.paginator.num_pages }}
-
-        </span>
-
-
-        {% if page_obj.has_next %}
-
-        <a
-          href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
-          Next
-        </a>
-
-        <a
-          href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
-          Last
-        </a>
-
-        {% endif %}
-
-      </div>
-
-      {% endif %}
       </div>
 
     </div>
@@ -234,10 +226,14 @@
 
       </div>
 
-
       <div class="panel-card">
 
-        <h4>Transaction Details</h4>
+        <h4>Transaction Information</h4>
+
+        <div class="row-line">
+          <span>Transaction ID</span>
+          <strong id="txnId"></strong>
+        </div>
 
         <div class="row-line">
           <span>Date</span>
@@ -261,10 +257,9 @@
 
       </div>
 
-
       <div class="panel-card">
 
-        <h4>Related Information</h4>
+        <h4>Related Records</h4>
 
         <div class="row-line">
           <span>Customer</span>
@@ -278,24 +273,11 @@
 
       </div>
 
-
       <div class="panel-card">
 
         <h4>Remarks</h4>
 
-        <p id="txnRemarks" style="
-            margin-top:10px;
-            color:#555;
-            line-height:1.6;
-        "></p>
-
-      </div>
-
-      <div class="panel-actions">
-
-        <button class="category-edit-btn" onclick="openEditModal()">
-          Edit Transaction
-        </button>
+        <p id="txnRemarks" class="remarks-text"></p>
 
       </div>
 
@@ -319,23 +301,31 @@
 
     <!-- ADD CATEGORY -->
 
-    <div class="form-group">
+    <form id="categoryForm">
 
-      <label>
-        Category Name
-      </label>
+      {% csrf_token %}
 
-      <div class="inline-form">
+      <input type="hidden" id="categoryId" name="category_id">
 
-        <input type="text" id="categoryName" placeholder="Enter category name">
+      <div class="form-group">
 
-        <button type="button" class="primary-btn" style="font-weight:bold;">
-          Add
-        </button>
+        <label>
+          Category Name
+        </label>
+
+        <div class="inline-form">
+
+          <input type="text" id="categoryName" name="name" placeholder="Enter category name" required>
+
+          <button type="submit" class="primary-btn" id="categorySubmitBtn">
+            Add
+          </button>
+
+        </div>
 
       </div>
 
-    </div>
+    </form>
 
     <!-- CATEGORY LIST -->
 
@@ -348,7 +338,7 @@
         <thead>
           <tr>
             <th>Name</th>
-            <th width="200" style="text-align:center;">
+            <th>
               Action
             </th>
           </tr>
@@ -356,136 +346,39 @@
 
         <tbody>
 
+          {% for category in categories %}
+
           <tr>
+
             <td>
-              Fuel Expense
+              {{ category.name }}
             </td>
-            <td width="120">
-              <button class="category-edit-btn">
+
+            <td>
+              <button type="button" class="category-edit-btn" onclick="
+                editCategory(
+                    '{{ category.id }}',
+                    '{{ category.name|escapejs }}'
+                )
+            ">
                 Edit
               </button>
+
             </td>
+
           </tr>
+
+          {% empty %}
+
           <tr>
-            <td>
-              Fuel Expense
+
+            <td colspan="2">
+              No categories found.
             </td>
-            <td width="120">
-              <button class="category-edit-btn">
-                Edit
-              </button>
-            </td>
+
           </tr>
-          <tr>
-            <td>
-              Fuel Expense
-            </td>
-            <td width="120">
-              <button class="category-edit-btn">
-                Edit
-              </button>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              Fuel Expense
-            </td>
-            <td width="120">
-              <button class="category-edit-btn">
-                Edit
-              </button>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              Fuel Expense
-            </td>
-            <td width="120">
-              <button class="category-edit-btn">
-                Edit
-              </button>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              Fuel Expense
-            </td>
-            <td width="120">
-              <button class="category-edit-btn">
-                Edit
-              </button>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              Fuel Expense
-            </td>
-            <td width="120">
-              <button class="category-edit-btn">
-                Edit
-              </button>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              Fuel Expense
-            </td>
-            <td width="120">
-              <button class="category-edit-btn">
-                Edit
-              </button>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              Fuel Expense
-            </td>
-            <td width="120">
-              <button class="category-edit-btn">
-                Edit
-              </button>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              Fuel Expense
-            </td>
-            <td width="120">
-              <button class="category-edit-btn">
-                Edit
-              </button>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              Fuel Expense
-            </td>
-            <td width="120">
-              <button class="category-edit-btn">
-                Edit
-              </button>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              Fuel Expense
-            </td>
-            <td width="120">
-              <button class="category-edit-btn">
-                Edit
-              </button>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              Fuel Expense
-            </td>
-            <td width="120">
-              <button class="category-edit-btn">
-                Edit
-              </button>
-            </td>
-          </tr>
+
+          {% endfor %}
 
         </tbody>
 
@@ -509,52 +402,87 @@
 
     <h3>Add Transaction</h3>
 
-    <!-- BULK ROWS -->
+    <form method="POST" action="{% url 'accounts:transaction-create' %}">
 
-    <div id="transactionRows">
+      {% csrf_token %}
 
-      <div class="transaction-row">
+      <!-- BULK ROWS -->
 
-        <button type="button" class="remove-row-btn" onclick="removeTransactionRow(this)">
-          ✖
-        </button>
+      <div id="transactionRows">
 
-        <select>
-          <option>Cash In</option>
-          <option>Cash Out</option>
-        </select>
+        <div class="transaction-row">
 
-        <select>
-          <option>Select Category</option>
-        </select>
+          <button type="button" class="remove-row-btn" onclick="removeTransactionRow(this)">
+            ✖
+          </button>
 
-        <input class="full-width" type="number" placeholder="Amount">
+          <select name="transaction_type">
 
-        <input class="full-width" type="text" placeholder="Remarks">
+            <option value="cash_in">
+              Cash In
+            </option>
+
+            <option value="cash_out">
+              Cash Out
+            </option>
+
+          </select>
+
+          <select name="category">
+
+            <option value="">
+              Select Category
+            </option>
+
+            {% for category in categories %}
+
+            <option value="{{ category.id }}">
+              {{ category.name }}
+            </option>
+
+            {% endfor %}
+
+          </select>
+
+          <input class="full-width" type="number" step="0.01" name="amount" placeholder="Amount" required>
+
+          <input class="full-width" type="text" name="remarks" placeholder="Remarks">
+
+        </div>
 
       </div>
 
-    </div>
+      <div style="
+          display:flex;
+          gap:10px;
+          margin-top:15px;
+        ">
 
-    <div style="
-                display:flex;
-                gap:10px;
-                margin-top:15px;
-            ">
+        <button type="button" class="secondary-btn" onclick="addTransactionRow()">
+          + Add Row
+        </button>
 
-      <button type="button" class="secondary-btn" onclick="addTransactionRow()">
-        + Add Row
-      </button>
+        <button type="submit" class="primary-btn">
+          Save Transactions
+        </button>
 
-      <button type="button" class="primary-btn">
-        Save Transactions
-      </button>
+      </div>
 
-    </div>
+    </form>
 
   </div>
 
 </div>
+
+<script>
+  window.categoryOptions = `
+{% for category in categories %}
+<option value="{{ category.id }}">
+    {{ category.name }}
+</option>
+{% endfor %}
+`;
+</script>
 
 
 {% endblock content %}

@@ -10,15 +10,6 @@ class TransactionCategory(models.Model):
         unique=True
     )
 
-    description = models.TextField(
-        blank=True,
-        null=True
-    )
-
-    is_active = models.BooleanField(
-        default=True
-    )
-
     created_at = models.DateTimeField(
         auto_now_add=True
     )

@@ -137,6 +137,95 @@ tbody tr:hover {
         slideInRight .25s ease;
 }
 
+.panel-header {
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:20px;
+}
+
+.panel-header h3 {
+
+    margin:0;
+
+    font-size:20px;
+
+    font-weight:700;
+}
+
+.panel-card {
+
+    background:#fff;
+
+    border:1px solid #ececec;
+
+    border-radius:12px;
+
+    padding:16px;
+
+    margin-bottom:14px;
+}
+
+.panel-card h4 {
+
+    margin:0 0 14px;
+
+    font-size:15px;
+
+    font-weight:600;
+
+    color:#111827;
+}
+
+.row-line {
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:10px 0;
+
+    border-bottom:1px solid #f1f5f9;
+}
+
+.row-line:last-child {
+
+    border-bottom:none;
+}
+
+.row-line span {
+
+    color:#6b7280;
+
+    font-size:13px;
+}
+
+.row-line strong {
+
+    color:#111827;
+
+    font-size:14px;
+
+    font-weight:600;
+}
+
+.remarks-text {
+
+    margin:0;
+
+    color:#4b5563;
+
+    line-height:1.6;
+
+    word-break:break-word;
+}
+
 /* ANIMATION */
 @keyframes slideInRight {
   from {
@@ -249,7 +338,7 @@ hr {
 
     width: 90%;
 
-    max-width: 700px;
+    max-width: 500px;
 
     max-height: 80vh;
 
@@ -348,7 +437,7 @@ hr {
 
     border-bottom: 1px solid #eee;
 
-    text-align: left;
+    text-align: center;
 }
 
 /* TRANSACTION */
