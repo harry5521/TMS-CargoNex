@@ -353,17 +353,19 @@ hr {
 
 /* CATEGORY */
 
-.form-group {
-  margin-top: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
+.form-group{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin-bottom:16px;
 }
 
-.form-group input {
-    padding: 10px 12px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+.form-group input,
+.form-group select{
+    width:100%;
+    padding:10px 12px;
+    border:1px solid #ddd;
+    border-radius:8px;
 }
 
 .inline-form {
@@ -389,7 +391,7 @@ hr {
 
     display: block;
 
-    max-height: 250px;
+    max-height: 180px;
 
     overflow-y: auto;
 }

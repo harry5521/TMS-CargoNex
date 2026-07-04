@@ -69,17 +69,26 @@ function closeTxn() {
 // CATEGORY MODAL
 // ======================================
 
+// ======================================
+// CATEGORY MODAL
+// ======================================
+
 function openCategoryModal() {
 
     document
         .getElementById("categoryModal")
         .classList
         .remove("hidden");
+
+    toggleOwnerAction();
 }
+
 
 function editCategory(
     id,
-    name
+    name,
+    type,
+    ownerAction
 ) {
 
     document
@@ -91,12 +100,56 @@ function editCategory(
         .value = name;
 
     document
+        .getElementById("categoryType")
+        .value = type;
+
+    toggleOwnerAction();
+
+    document
+        .getElementById("ownerAction")
+        .value = ownerAction || "";
+
+    document
         .getElementById("categorySubmitBtn")
         .innerText = "Update";
 
     document
         .getElementById("categoryName")
         .focus();
+}
+
+
+function toggleOwnerAction() {
+
+    const type =
+        document.getElementById(
+            "categoryType"
+        );
+
+    const group =
+        document.getElementById(
+            "ownerActionGroup"
+        );
+
+    const action =
+        document.getElementById(
+            "ownerAction"
+        );
+
+    if (type.value === "owner") {
+
+        group.style.display = "flex";
+
+    }
+
+    else {
+
+        group.style.display = "none";
+
+        action.value = "";
+
+    }
+
 }
 
 
@@ -116,12 +169,38 @@ function closeCategoryModal() {
         .value = "";
 
     document
+        .getElementById("categoryType")
+        .selectedIndex = 0;
+
+    document
+        .getElementById("ownerAction")
+        .selectedIndex = 0;
+
+    document
         .getElementById("categorySubmitBtn")
         .innerText = "Add";
+
+    toggleOwnerAction();
+
 }
 
 
-// Save Category using Ajax
+// ======================================
+// SHOW / HIDE OWNER ACTION
+// ======================================
+
+document
+    .getElementById("categoryType")
+    .addEventListener(
+        "change",
+        toggleOwnerAction
+    );
+
+
+// ======================================
+// SAVE CATEGORY
+// ======================================
+
 document
     .getElementById("categoryForm")
     .addEventListener(
@@ -153,19 +232,28 @@ document
 
             if (data.success) {
 
-    localStorage.setItem(
-        "reopenCategoryModal",
-        "true"
-    );
+                localStorage.setItem(
+                    "reopenCategoryModal",
+                    "true"
+                );
 
-    window.location.reload();
-}
+                window.location.reload();
+
+            }
+
         }
     );
+
+
+// ======================================
+// REOPEN AFTER RELOAD
+// ======================================
 
 window.addEventListener(
     "load",
     function () {
+
+        toggleOwnerAction();
 
         if (
             localStorage.getItem(
@@ -178,6 +266,7 @@ window.addEventListener(
             localStorage.removeItem(
                 "reopenCategoryModal"
             );
+
         }
 
     }
@@ -214,9 +303,7 @@ function closeTransactionModal() {
 function addTransactionRow() {
 
     const container =
-        document.getElementById(
-            "transactionRows"
-        );
+        document.getElementById("transactionRows");
 
     const row =
         document.createElement("div");
@@ -234,19 +321,18 @@ function addTransactionRow() {
             ✖
         </button>
 
-        <select name="transaction_type">
+        <input
+            type="text"
+            name="title"
+            placeholder="Transaction Title"
+            class="full-width"
+            required
+        >
 
-            <option value="cash_in">
-                Cash In
-            </option>
-
-            <option value="cash_out">
-                Cash Out
-            </option>
-
-        </select>
-
-        <select name="category">
+        <select
+            name="category"
+            class="categorySelect"
+        >
 
             <option value="">
                 Select Category
@@ -271,10 +357,15 @@ function addTransactionRow() {
             name="remarks"
             placeholder="Remarks"
         >
+
     `;
 
     container.appendChild(row);
+
+    
 }
+
+
 
 function removeTransactionRow(button) {
 
@@ -321,4 +412,5 @@ document.addEventListener("click", function (e) {
     }
 
 });
+
 

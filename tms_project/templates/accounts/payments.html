@@ -41,37 +41,44 @@
         </div>
       </div>
 
+      <!-- FILTER BAR -->
+<form method="GET" class="filter-bar" style="display: flex; gap: 12px; align-items: center; width: 100%; margin-bottom: 20px;">
+  
+  <!-- Search input limited width ke sath taake right par jagah bache -->
+  <input type="text" name="search" placeholder="Search customer, builty, payment ID..." value="{{ request.GET.search }}" style="width: 350px; flex-shrink: 0;">
+
+  <!-- Payment Mode Filter -->
+  <select name="payment_mode" style="width: 140px; flex-shrink: 0;">
+    <option value="">All Methods</option>
+    <option value="cash" {% if request.GET.payment_mode == 'cash' %}selected{% endif %}>Cash</option>
+    <option value="bank" {% if request.GET.payment_mode == 'bank' %}selected{% endif %}>Bank Transfer</option>
+    <option value="online" {% if request.GET.payment_mode == 'online' %}selected{% endif %}>Online Transfer</option>
+    <option value="cheque" {% if request.GET.payment_mode == 'cheque' %}selected{% endif %}>Cheque</option>
+  </select>
+
+  <!-- Smart Date Period Filter -->
+  <select name="date_period" id="datePeriodSelect" style="width: 150px; flex-shrink: 0;">
+    <option value="all" {% if request.GET.date_period == 'all' or not request.GET.date_period %}selected{% endif %}>All Time</option>
+    <option value="today" {% if request.GET.date_period == 'today' %}selected{% endif %}>Today</option>
+    <option value="yesterday" {% if request.GET.date_period == 'yesterday' %}selected{% endif %}>Yesterday</option>
+    <option value="this_week" {% if request.GET.date_period == 'this_week' %}selected{% endif %}>This Week</option>
+    <option value="this_month" {% if request.GET.date_period == 'this_month' %}selected{% endif %}>This Month</option>
+    <option value="custom" {% if request.GET.date_period == 'custom' %}selected{% endif %}>Custom Range</option>
+  </select>
+
+  <!-- Custom Date Inputs Container (Ab yeh right side par bina niche drop huay open hoga) -->
+  <div id="dateRangeBox" class="{% if request.GET.date_period != 'custom' %}hidden{% endif %}" style="display: {% if request.GET.date_period == 'custom' %}flex{% else %}none{% endif %}; gap: 6px; align-items: center; flex-shrink: 0;">
+    <input type="date" name="start_date" id="startDate" value="{{ request.GET.start_date }}" style="width: 135px; padding: 6px 10px;">
+    <span style="font-size: 13px; color: #64748b;">to</span>
+    <input type="date" name="end_date" id="endDate" value="{{ request.GET.end_date }}" style="width: 135px; padding: 6px 10px;">
+  </div>
+
+  <!-- Search Button (Hamesha row ke end par perfect fit rahega) -->
+  <button type="submit" class="primary-btn" style="white-space: nowrap; padding: 8px 16px;">Search</button>
+</form>
+
       <!-- TABLE -->
       <div class="table-section">
-
-        <form method="GET" class="global-filter">
-
-          <!-- SEARCH -->
-          <div class="search-box">
-            <span class="search-icon">🔍</span>
-            <input type="text" name="q" placeholder="Search ID, customer..." value="{{ request.GET.q }}">
-          </div>
-
-          <!-- FILTER SELECT -->
-          <select name="filter" id="filterSelect" onchange="handleFilterChange()">
-            <option value="">All</option>
-            <option value="today" selected>Today</option>
-            <option value="yesterday">Yesterday</option>
-            <option value="week">This Week</option>
-            <option value="month">This Month</option>
-            <option value="range">Date Range</option>
-          </select>
-
-          <!-- DATE RANGE -->
-          <div id="dateRangeBox" class="hidden">
-            <input type="date" name="start_date" id="startDate">
-            <input type="date" name="end_date" id="endDate">
-          </div>
-
-          <!-- SUBMIT -->
-          <button type="submit" class="filter-btn">Search</button>
-
-        </form>
 
         <div class="table-wrapper">
           <table>
@@ -82,115 +89,34 @@
                 <th>Customer</th>
                 <th>Builty</th>
                 <th>Type</th>
-                <th>Method</th>
                 <th>Amount</th>
               </tr>
             </thead>
 
             <tbody>
+              {% for payment in payments %}
+              <tr class="payment-row" data-id="{{ payment.payment_id }}"
+                data-date="{{ payment.payment_date|date:'d M Y' }}" data-customer="{{ payment.builty.customer.company_name }}"
+                data-builty="{{ payment.builty.builty_no }}" data-mode="{{ payment.get_payment_mode_display }}"
+                data-reference="{{ payment.reference_no|default:'' }}" data-remarks="{{ payment.remarks|default:'' }}"
+                data-amount="{{ payment.amount }}">
 
-              <tr onclick="selectPayment('PAY-001')">
-                <td class="link">PAY-001</td>
-                <td>24 May</td>
-                <td>Global Logistics</td>
-                <td>B-88291</td>
-                <td><span class="badge neutral">Advance</span></td>
-                <td>Bank</td>
-                <td>45,000</td>
+                <td class="link">{{ payment.payment_id }}</td>
+                <td>{{ payment.payment_date|date:"d M" }}</td>
+                <td>{{ payment.builty.customer.company_name }}</td>
+                <td>{{ payment.builty.builty_no }}</td>
+                <td>
+                  <span class="badge {% if payment.amount > 0 %}paid{% else %}neutral{% endif %}">
+                    Received
+                  </span>
+                </td>
+                <td>Rs. {{ payment.amount }}</td>
               </tr>
-
-              <tr onclick="selectPayment('PAY-002')">
-                <td class="link">PAY-002</td>
-                <td>24 May</td>
-                <td>Swift Transporters</td>
-                <td>B-88285</td>
-                <td><span class="badge paid">Full</span></td>
-                <td>Cash</td>
-                <td>12,500</td>
+              {% empty %}
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 20px;">No payments recorded.</td>
               </tr>
-              <tr onclick="selectPayment('PAY-002')">
-                <td class="link">PAY-002</td>
-                <td>24 May</td>
-                <td>Swift Transporters</td>
-                <td>B-88285</td>
-                <td><span class="badge paid">Full</span></td>
-                <td>Cash</td>
-                <td>12,500</td>
-              </tr>
-              <tr onclick="selectPayment('PAY-002')">
-                <td class="link">PAY-002</td>
-                <td>24 May</td>
-                <td>Swift Transporters</td>
-                <td>B-88285</td>
-                <td><span class="badge paid">Full</span></td>
-                <td>Cash</td>
-                <td>12,500</td>
-              </tr>
-              <tr onclick="selectPayment('PAY-002')">
-                <td class="link">PAY-002</td>
-                <td>24 May</td>
-                <td>Swift Transporters</td>
-                <td>B-88285</td>
-                <td><span class="badge paid">Full</span></td>
-                <td>Cash</td>
-                <td>12,500</td>
-              </tr>
-              <tr onclick="selectPayment('PAY-002')">
-                <td class="link">PAY-002</td>
-                <td>24 May</td>
-                <td>Swift Transporters</td>
-                <td>B-88285</td>
-                <td><span class="badge paid">Full</span></td>
-                <td>Cash</td>
-                <td>12,500</td>
-              </tr>
-              <tr onclick="selectPayment('PAY-002')">
-                <td class="link">PAY-002</td>
-                <td>24 May</td>
-                <td>Swift Transporters</td>
-                <td>B-88285</td>
-                <td><span class="badge paid">Full</span></td>
-                <td>Cash</td>
-                <td>12,500</td>
-              </tr>
-              <tr onclick="selectPayment('PAY-002')">
-                <td class="link">PAY-002</td>
-                <td>24 May</td>
-                <td>Swift Transporters</td>
-                <td>B-88285</td>
-                <td><span class="badge paid">Full</span></td>
-                <td>Cash</td>
-                <td>12,500</td>
-              </tr>
-              <tr onclick="selectPayment('PAY-002')">
-                <td class="link">PAY-002</td>
-                <td>24 May</td>
-                <td>Swift Transporters</td>
-                <td>B-88285</td>
-                <td><span class="badge paid">Full</span></td>
-                <td>Cash</td>
-                <td>12,500</td>
-              </tr>
-              <tr onclick="selectPayment('PAY-002')">
-                <td class="link">PAY-002</td>
-                <td>24 May</td>
-                <td>Swift Transporters</td>
-                <td>B-88285</td>
-                <td><span class="badge paid">Full</span></td>
-                <td>Cash</td>
-                <td>12,500</td>
-              </tr>
-              <tr onclick="selectPayment('PAY-002')">
-                <td class="link">PAY-002</td>
-                <td>24 May</td>
-                <td>Swift Transporters</td>
-                <td>B-88285</td>
-                <td><span class="badge paid">Full</span></td>
-                <td>Cash</td>
-                <td>12,500</td>
-              </tr>
-
-
+              {% endfor %}
             </tbody>
           </table>
           <div class="pagination" id="pagination"></div>
@@ -200,70 +126,70 @@
     </div>
 
     <!-- RIGHT PANEL -->
-    <div class="payments-right hidden" id="paymentPanel">
+<div class="payments-right hidden" id="paymentPanel">
 
-      <!-- HEADER -->
-      <div class="panel-header">
-        <h3 id="payTitle"></h3>
-        <button class="close-btn" onclick="closePayment()">✖</button>
-      </div>
+  <div class="panel-header">
+    <h3 id="payTitle"></h3>
+    <button class="close-btn" onclick="closePayment()">✖</button>
+  </div>
 
-      <!-- DATE -->
-      <div class="panel-sub">
-        <span>Date:</span>
-        <strong id="payDate"></strong>
-      </div>
+  <div class="panel-sub">
+    <span>Date:</span>
+    <strong id="payDate"></strong>
+  </div>
 
-      <!-- CUSTOMER INFO -->
-      <div class="panel-card">
-        <h4>Customer Info</h4>
-
-        <div class="row-line">
-          <span>Customer</span>
-          <strong id="payCustomer"></strong>
-        </div>
-
-        <div class="row-line">
-          <span>Builty</span>
-          <strong id="payBuilty"></strong>
-        </div>
-      </div>
-
-      <!-- PAYMENT DETAILS -->
-      <div class="panel-card">
-        <h4>Payment Details</h4>
-
-        <div class="row-line">
-          <span>Type</span>
-          <strong id="payType"></strong>
-        </div>
-
-        <div class="row-line">
-          <span>Method</span>
-          <strong id="payMethod"></strong>
-        </div>
-      </div>
-
-      <!-- FINANCIAL -->
-      <div class="panel-card highlight">
-        <h4>Amount</h4>
-
-        <div class="row-line">
-          <span>Total</span>
-          <strong class="success" id="payAmount"></strong>
-        </div>
-      </div>
-
+  <!-- CUSTOMER INFO -->
+  <div class="panel-card">
+    <h4>Customer Info</h4>
+    <div class="row-line">
+      <span>Customer</span>
+      <strong id="payCustomer"></strong>
     </div>
+    <div class="row-line">
+      <span>Builty</span>
+      <strong id="payBuilty"></strong>
+    </div>
+  </div>
+
+  <!-- PAYMENT DETAILS -->
+  <div class="panel-card">
+    <h4>Payment Details</h4>
+    <div class="row-line">
+      <span>Method</span>
+      <strong id="payMethod"></strong>
+    </div>
+    <div class="row-line">
+      <span>Ref No.</span>
+      <strong id="payReference"></strong>
+    </div>
+  </div>
+
+  <!-- REMARKS BOX (UI Band Bajne Se Bachane K Liye) -->
+  <div class="panel-card">
+    <h4>Remarks</h4>
+    <div id="payRemarksBox" style="margin-top: 8px; padding: 10px; background-color: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 13px; color: #475569; word-break: break-word; min-height: 50px;">
+      <span id="payRemarks"></span>
+    </div>
+  </div>
+
+  <!-- FINANCIAL -->
+  <div class="panel-card highlight">
+    <h4>Amount</h4>
+    <div class="row-line">
+      <span>Total</span>
+      <strong class="success">Rs. <span id="payAmount"></span></strong>
+    </div>
+  </div>
+
+</div>
 
   </div>
 
 </div>
 
 
-<!-- PAYMENT RECEIPT PANEL -->
+<!-- PAYMENT RECEIPT MODAL OVERLAY -->
 <div class="receipt-overlay hidden" id="receiptModal">
-
   <div class="receipt-container">
 
     <!-- HEADER -->
@@ -273,90 +199,97 @@
     </div>
 
     <div class="receipt-body">
-
-      <!-- LEFT SIDE -->
-      <div class="receipt-left">
-
-        <!-- CUSTOMER SECTION -->
+      <!-- LEFT SIDE (FORM) -->
+      <form id="paymentCreateForm" class="receipt-left">
+        
+        <!-- SECTION 1: BUILTY & CUSTOMER SELECTION -->
         <div class="card form-card">
-          <h3>Customer & Builty Selection</h3>
-
+          <h3>Builty & Customer Selection</h3>
           <div class="form-row">
-            <div>
-              <label>Customer</label>
-              <input type="text" placeholder="Select customer">
+            <!-- Left Side: Searchable Builty -->
+            <div style="position: relative;">
+              <label>Builty No</label>
+              <input type="text" id="builtySearchInput" placeholder="Type to search Builty..." autocomplete="off">
+              <!-- Scrollable Suggestion List -->
+              <div id="builtyDropdownList" class="hidden" style="position: absolute; top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; background: white; border: 1px solid #cbd5e1; border-radius: 6px; z-index: 50; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
+                <!-- Dynamic items will load here -->
+              </div>
+              <input type="hidden" name="builty" id="selectedBuiltyId">
             </div>
 
+            <!-- Right Side: Read-Only Customer -->
             <div>
-              <label>Builty No</label>
-              <input type="text" placeholder="Select builty">
+              <label>Customer</label>
+              <input type="text" id="modalCustomerName" placeholder="Customer Name" readonly style="background-color: #f1f5f9; cursor: not-allowed;">
             </div>
           </div>
 
+          <!-- Read-Only Freight/Outstanding Summary Box -->
           <div class="summary-box">
-            <div>Total Freight <strong>₹12,500</strong></div>
-            <div>Advance Paid <strong>₹5,000</strong></div>
-            <div class="highlight">Outstanding <strong>₹7,500</strong></div>
+            <div>Total Freight <strong id="modalTotalFreight">PKR 0</strong></div>
+            <div>Advance Paid <strong id="modalAdvancePaid">PKR 0</strong></div>
+            <div class="highlight">Outstanding <strong id="modalOutstanding">PKR 0</strong></div>
           </div>
         </div>
 
-        <!-- PAYMENT DETAILS -->
+        <!-- SECTION 2: PAYMENT DETAILS -->
         <div class="card form-card">
           <h3>Payment Details</h3>
-
           <div class="form-row">
             <div>
               <label>Amount</label>
-              <input type="number" placeholder="Enter amount">
+              <input type="number" name="amount" id="modalAmountInput" placeholder="Enter amount" required step="0.01">
             </div>
-
             <div>
               <label>Date</label>
-              <input type="date">
+              <input type="date" name="payment_date" id="modalPaymentDate" required>
             </div>
           </div>
 
-          <div class="btn-group">
-            <button class="tag active">Remaining</button>
-            <button class="tag">Advance</button>
-            <button class="tag">Full</button>
+          <!-- Payment Mode Selection (Model choices alignment) -->
+          <label style="margin-top: 10px; display: block;">Payment Mode</label>
+          <div class="btn-group" id="paymentModeGroup">
+            <button type="button" class="tag active" data-mode="cash">Cash</button>
+            <button type="button" class="tag" data-mode="bank">Bank Transfer</button>
+            <button type="button" class="tag" data-mode="cheque">Cheque</button>
+            <button type="button" class="tag" data-mode="online">Online Transfer</button>
           </div>
+          <input type="hidden" name="payment_mode" id="selectedPaymentMode" value="cash">
 
-          <div class="btn-group">
-            <button class="tag active">Cash</button>
-            <button class="tag">Bank</button>
-            <button class="tag">Cheque</button>
+          <!-- Conditional Reference Field (By default hidden for cash) -->
+          <div id="referenceFieldBox" class="hidden" style="margin-top: 16px;">
+            <label id="referenceLabel" style="display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px;">Reference No / Cheque No</label>
+            <input type="text" name="reference_no" id="modalReferenceInput" placeholder="Enter reference number" 
+                  style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; color: #334155; outline: none; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;">
           </div>
         </div>
 
-        <!-- NOTES -->
+        <!-- SECTION 3: REMARKS -->
         <div class="card form-card">
-          <h3>Additional Notes</h3>
-          <textarea placeholder="Enter notes..."></textarea>
+          <h3>Remarks</h3>
+          <textarea name="remarks" id="modalRemarksInput" placeholder="Enter remarks/notes here..."></textarea>
         </div>
+      </form>
 
-      </div>
-
-      <!-- RIGHT SIDE -->
+      <!-- RIGHT SIDE (LIVE SUMMARY VIEW) -->
       <div class="receipt-right">
-
-        <div class="card summary-card">
-          <h4>Financial Summary</h4>
-          <p>Current Balance <strong>₹7,500</strong></p>
-          <p>Paying Now <strong class="blue">₹4,500</strong></p>
-          <hr>
-          <h2>₹3,000</h2>
-        </div>
-
-        <button class="primary-btn full-btn">Save Payment</button>
-        <button class="secondary-btn full-btn">Save & Add Another</button>
-
-      </div>
-
-    </div>
-
+        <div class="receipt-right">
+  <div class="card summary-card">
+    <h4>Financial Summary</h4>
+    <p>Current Balance <strong id="sideCurrentBalance">PKR 0</strong></p>
+    <!-- Paying Now hata kar Remaining kar diya -->
+    <p>Remaining <strong class="blue" id="sideRemainingText">PKR 0</strong></p>
+    <hr>
+    <!-- Badi text wali main header par ab live input amount (Paying Now) dikhegi -->
+    <h2 id="sidePayingMainTotal">PKR 0</h2>
   </div>
 
+  <button type="button" class="primary-btn full-btn" onclick="submitPaymentForm(false)">Save Payment</button>
+  <button type="button" class="secondary-btn full-btn" onclick="submitPaymentForm(true)">Save & Add Another</button>
+</div>
+
+    </div>
+  </div>
 </div>
 
 {% endblock content %}

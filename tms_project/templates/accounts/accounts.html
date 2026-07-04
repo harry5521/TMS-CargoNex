@@ -113,7 +113,9 @@
               <tr>
                 <th>Txn ID</th>
                 <th>Date</th>
+                <th>Title</th>
                 <th>Category</th>
+                <th>Exp Type</th>
                 <th>Type</th>
                 <th>Amount</th>
               </tr>
@@ -136,10 +138,16 @@
 
                 <td>{{ txn.transaction_date }}</td>
 
+                <td>{{ txn.title }}</td>
+
                 <td>{{ txn.category.name }}</td>
 
                 <td>
-                  {{ txn.get_transaction_type_display }}
+                  {{ txn.category.get_category_type_display }}
+                </td>
+
+                <td>
+                  {{ txn.category.get_cash_flow_display }}
                 </td>
 
                 <td class="{% if txn.transaction_type == 'cash_in' %}credit{% else %}debit{% endif %}">
@@ -163,7 +171,9 @@
           <div class="pagination" id="pagination"></div>
         </div>
 
-        {% if is_paginated %}
+      </div>
+
+      {% if is_paginated %}
 
         <div class="pagination">
 
@@ -209,7 +219,6 @@
         </div>
 
         {% endif %}
-      </div>
 
     </div>
 
@@ -291,102 +300,168 @@
 <!-- CATEGORY MODAL -->
 <div id="categoryModal" class="modal-overlay hidden">
 
-  <div class="modal-box large-modal">
+    <div class="modal-box large-modal">
 
-    <button class="close-btn" onclick="closeCategoryModal()">
-      ✖
-    </button>
+        <button class="close-btn" onclick="closeCategoryModal()">
+            ✖
+        </button>
 
-    <h3>Manage Categories</h3>
+        <h3>Manage Categories</h3>
 
-    <!-- ADD CATEGORY -->
+        <form id="categoryForm">
 
-    <form id="categoryForm">
+            {% csrf_token %}
 
-      {% csrf_token %}
+            <input type="hidden" id="categoryId" name="category_id">
 
-      <input type="hidden" id="categoryId" name="category_id">
+            <div class="form-group">
 
-      <div class="form-group">
+                <label>Category Name</label>
 
-        <label>
-          Category Name
-        </label>
+                <input
+                    type="text"
+                    id="categoryName"
+                    name="name"
+                    placeholder="Enter category name"
+                    required
+                >
 
-        <div class="inline-form">
+            </div>
 
-          <input type="text" id="categoryName" name="name" placeholder="Enter category name" required>
+            <div class="form-group">
 
-          <button type="submit" class="primary-btn" id="categorySubmitBtn">
-            Add
-          </button>
+                <label>Category Type</label>
+
+                <select
+                    id="categoryType"
+                    name="category_type"
+                    required
+                >
+
+                    <option value="">Select Type</option>
+                    <option value="expense">Expense</option>
+                    <option value="income">Income</option>
+                    <option value="owner">Owner Transaction</option>
+
+                </select>
+
+            </div>
+
+            <div
+    class="form-group"
+    id="ownerActionGroup"
+    style="display:none;"
+>
+
+    <label>
+        Owner Action
+    </label>
+
+    <select
+        id="ownerAction"
+        name="owner_action"
+    >
+
+        <option value="">
+            Select Action
+        </option>
+
+        <option value="investment">
+            Investment
+        </option>
+
+        <option value="withdrawal">
+            Withdrawal
+        </option>
+
+    </select>
+
+</div>
+
+            <div style="display:flex;justify-content:flex-end;margin-top:18px;">
+
+                <button
+                    type="submit"
+                    class="primary-btn"
+                    id="categorySubmitBtn"
+                >
+                    Add
+                </button>
+
+            </div>
+
+        </form>
+
+        <div class="category-list">
+
+            <h4 style="margin-bottom:12px;">
+                Existing Categories
+            </h4>
+
+            <table class="simple-table">
+
+                <thead>
+
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Action</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for category in categories %}
+
+                    <tr>
+
+                        <td>{{ category.name }}</td>
+
+                        <td>
+                            {{ category.get_category_type_display }}
+                        </td>
+
+                        <td>
+
+                            <button
+                                type="button"
+                                class="category-edit-btn"
+                                onclick="
+                                    editCategory(
+                                        '{{ category.id }}',
+                                        '{{ category.name|escapejs }}',
+                                        '{{ category.category_type }}',
+                                        '{{ category.owner_action|default:'' }}'
+                                    )
+                                "
+                            >
+                                Edit
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td colspan="3">
+                            No categories found.
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
 
         </div>
 
-      </div>
-
-    </form>
-
-    <!-- CATEGORY LIST -->
-
-    <div class="category-list">
-
-      <h4 style="margin-bottom: 10px;">Existing Categories</h4>
-
-      <table class="simple-table">
-
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>
-              Action
-            </th>
-          </tr>
-        </thead>
-
-        <tbody>
-
-          {% for category in categories %}
-
-          <tr>
-
-            <td>
-              {{ category.name }}
-            </td>
-
-            <td>
-              <button type="button" class="category-edit-btn" onclick="
-                editCategory(
-                    '{{ category.id }}',
-                    '{{ category.name|escapejs }}'
-                )
-            ">
-                Edit
-              </button>
-
-            </td>
-
-          </tr>
-
-          {% empty %}
-
-          <tr>
-
-            <td colspan="2">
-              No categories found.
-            </td>
-
-          </tr>
-
-          {% endfor %}
-
-        </tbody>
-
-      </table>
-
     </div>
-
-  </div>
 
 </div>
 
@@ -412,43 +487,61 @@
 
         <div class="transaction-row">
 
-          <button type="button" class="remove-row-btn" onclick="removeTransactionRow(this)">
-            ✖
-          </button>
+    <button
+        type="button"
+        class="remove-row-btn"
+        onclick="removeTransactionRow(this)"
+    >
+        ✖
+    </button>
 
-          <select name="transaction_type">
+    <input
+        type="text"
+        name="title"
+        placeholder="Transaction Title"
+        class="full-width"
+        required
+    >
 
-            <option value="cash_in">
-              Cash In
-            </option>
+    <select
+    name="category"
+    class="categorySelect"
+>
 
-            <option value="cash_out">
-              Cash Out
-            </option>
+    <option value="">
+        Select Category
+    </option>
 
-          </select>
+    {% for category in categories %}
 
-          <select name="category">
+    <option
+        value="{{ category.id }}"
+        data-cash-flow="{{ category.cash_flow }}"
+    >
+        {{ category.name }}
+    </option>
 
-            <option value="">
-              Select Category
-            </option>
+    {% endfor %}
 
-            {% for category in categories %}
+</select>
 
-            <option value="{{ category.id }}">
-              {{ category.name }}
-            </option>
+    <input
+        class="full-width"
+        type="number"
+        step="0.01"
+        name="amount"
+        placeholder="Amount"
+        required
+    >
 
-            {% endfor %}
+    <input
+        class="full-width"
+        type="text"
+        name="remarks"
+        placeholder="Remarks"
+    >
 
-          </select>
-
-          <input class="full-width" type="number" step="0.01" name="amount" placeholder="Amount" required>
-
-          <input class="full-width" type="text" name="remarks" placeholder="Remarks">
-
-        </div>
+</div>
 
       </div>
 
@@ -475,13 +568,18 @@
 </div>
 
 <script>
-  window.categoryOptions = `
+
+window.categoryOptions = `
 {% for category in categories %}
-<option value="{{ category.id }}">
+<option
+    value="{{ category.id }}"
+    data-cash-flow="{{ category.cash_flow }}"
+>
     {{ category.name }}
 </option>
 {% endfor %}
 `;
+
 </script>
 
 

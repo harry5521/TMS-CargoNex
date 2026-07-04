@@ -1,20 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base/base.html" %}
+{% load static %}
 
-<head>
-  <meta charset="UTF-8">
-  <title>Expenses</title>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/expenses.css' %}">
+{% endblock extra_css %}
 
-  <link rel="stylesheet" href="../css/style.css">
-  <link rel="stylesheet" href="../css/expenses.css">
-</head>
 
-<body onload="loadLayout()">
-
-  <div id="sidebar"></div>
-
-  <div class="main">
-    <div id="navbar"></div>
+{% block content %}
 
     <div class="content">
 
@@ -313,12 +305,9 @@
 
     </div>
 
-    <div id="footer"></div>
-  </div>
+{% endblock content %}
 
-  <script src="../js/include.js"></script>
-  <script src="../js/expenses.js"></script>
 
-</body>
-
-</html>
+{% block extra_js %}
+<script src="{% static 'js/expenses.js' %}"></script>
+{% endblock %}

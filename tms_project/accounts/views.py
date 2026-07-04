@@ -103,33 +103,39 @@ class AccountsView(ListView):
 class TransactionCategorySaveView(View):
 
     def post(self, request):
-
-        category_id = request.POST.get(
-            'category_id'
-        )
-
-        name = request.POST.get(
-            'name'
-        )
+        category_id = request.POST.get("category_id")
+        name = request.POST.get("name")
+        category_type = request.POST.get("category_type")
+        owner_action = request.POST.get("owner_action") or None
 
         if category_id:
-
             category = TransactionCategory.objects.get(
                 pk=category_id
             )
-
             category.name = name
+            category.category_type = category_type
+            category.owner_action = owner_action
             category.save()
 
         else:
-
             TransactionCategory.objects.create(
-                name=name
+                name=name,
+                category_type=category_type,
+                owner_action=owner_action
             )
 
-        return JsonResponse({
-            'success': True
-        })
+        return JsonResponse({"success": True})
+
+
+from decimal import Decimal
+from django.contrib import messages
+from django.shortcuts import redirect
+from django.views import View
+
+from .models import (
+    Transaction,
+    TransactionCategory
+)
 
 
 class TransactionCreateView(View):
@@ -138,65 +144,77 @@ class TransactionCreateView(View):
 
         try:
 
-            transaction_types = request.POST.getlist(
-                'transaction_type'
+            titles = request.POST.getlist(
+                "title"
             )
 
             categories = request.POST.getlist(
-                'category'
+                "category"
             )
 
             amounts = request.POST.getlist(
-                'amount'
+                "amount"
             )
 
             remarks_list = request.POST.getlist(
-                'remarks'
+                "remarks"
             )
 
-            for i in range(
-                len(transaction_types)
-            ):
+            for i in range(len(categories)):
 
                 if (
+                    not titles[i]
+                    or
                     not categories[i]
                     or
                     not amounts[i]
                 ):
                     continue
 
+                category = (
+                    TransactionCategory.objects.get(
+                        pk=categories[i]
+                    )
+                )
+
                 Transaction.objects.create(
 
+                    title=titles[i],
+
                     transaction_type=
-                    transaction_types[i],
+                    category.cash_flow,
 
-                    category_id=
-                    categories[i],
+                    category=category,
 
-                    amount=
-                    Decimal(amounts[i]),
+                    amount=Decimal(
+                        amounts[i]
+                    ),
 
-                    remarks=
-                    remarks_list[i]
+                    remarks=remarks_list[i]
+
                 )
 
             messages.success(
                 request,
-                'Transactions added successfully.'
+                "Transactions added successfully."
             )
 
         except Exception as e:
 
             messages.error(
                 request,
-                f'Error: {e}'
+                f"Error: {e}"
             )
 
         return redirect(
-            'accounts:accounts'
+            "accounts:accounts"
         )
 
-class PaymentsView(View):
-    def get(self, request):
-        return render(request, 'accounts/payments.html')
+
+# General Expenses View
+
+class GeneralExpensesView(ListView):
+    model = Transaction
+    template_name = 'accounts/expenses.html'
+    context_object_name = 'general_expenses'
 

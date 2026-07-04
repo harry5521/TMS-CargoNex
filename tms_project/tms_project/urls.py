@@ -23,5 +23,6 @@ urlpatterns = [
     path('tms/', include('core.urls')),
     path('tms/customers/', include('customers.urls')),
     path('tms/builty/', include('builty.urls')),
-    path('tms/accounts/', include('accounts.urls'))
+    path('tms/accounts/', include('accounts.urls')),
+    path('tms/payments/', include('payments.urls')),
 ]

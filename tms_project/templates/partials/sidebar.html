@@ -53,8 +53,8 @@
         </a>
       </li>
 
-      <li class="side-bar-item">
-        <a href="../pages/expenses.html">
+      <li class="side-bar-item {% if request.resolver_match.url_name == 'general-expenses' %}active{% endif %}">
+        <a href="{% url 'accounts:general-expenses' %}">
           <svg class="icon" viewBox="0 0 24 24">
             <path d="M12 1L3 5v6c0 5 3.8 9.74 9 11 5.2-1.26 9-6 9-11V5l-9-4z" />
           </svg>
@@ -71,8 +71,8 @@
         </a>
       </li>
 
-      <li class="side-bar-item {% if request.resolver_match.url_name == 'payments' %}active{% endif %}">
-        <a href="{% url 'accounts:payments' %}">
+      <li class="side-bar-item {% if request.resolver_match.url_name == 'payments_view' %}active{% endif %}">
+        <a href="{% url 'payments:payments_view' %}">
           <svg class="icon" viewBox="0 0 24 24">
             <path d="M2 6h20v12H2zM2 10h20" />
           </svg>
