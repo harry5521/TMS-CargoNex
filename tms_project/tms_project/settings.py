@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     'builty',
     'accounts',
     'payments',
+    'drivers',
+    'vehicles',
 ]
 
 MIDDLEWARE = [

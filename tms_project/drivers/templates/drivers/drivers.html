@@ -1,0 +1,556 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/drivers.css' %}">
+{% endblock extra_css %}
+
+{% block content %}
+
+{% include "partials/alerts.html" %}
+
+<div class="content">
+
+  <div class="drivers-layout">
+
+    <!-- LEFT SIDE -->
+    <div class="drivers-left">
+
+      <div class="page-header">
+        <h2>Drivers</h2>
+
+        <button
+          type="button"
+          class="primary-btn"
+          onclick="openDriverModal()"
+        >
+          + Add Driver
+        </button>
+      </div>
+
+      <!-- FILTER BAR -->
+      <form method="GET" class="filter-bar">
+
+        <input
+          type="text"
+          name="search"
+          placeholder="Search driver code, name, CNIC, phone, license..."
+          value="{{ request.GET.search }}"
+        >
+
+        <button type="submit" class="primary-btn">
+          Search
+        </button>
+
+      </form>
+
+      <!-- TABLE -->
+      <div class="table-section">
+
+        <div class="table-wrapper">
+
+          <table>
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Driver</th>
+                <th>Phone</th>
+                <th>CNIC</th>
+                <th>License Expiry</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for driver in drivers %}
+
+              <tr
+                class="driver-row"
+                data-id="{{ driver.id }}"
+                data-update-url="{% url 'drivers:driver_update' driver.id %}"
+
+                data-driver-code="{{ driver.driver_code }}"
+                data-full-name="{{ driver.full_name }}"
+                data-father-name="{{ driver.father_name|default_if_none:'' }}"
+                data-cnic="{{ driver.cnic }}"
+                data-date-of-birth="{{ driver.date_of_birth|date:'Y-m-d' }}"
+                data-date-of-birth-display="{{ driver.date_of_birth|date:'d M Y' }}"
+
+                data-driver-type="{{ driver.driver_type }}"
+                data-driver-type-display="{{ driver.get_driver_type_display }}"
+
+                data-phone="{{ driver.phone }}"
+                data-alternate-phone="{{ driver.alternate_phone|default_if_none:'' }}"
+                data-city="{{ driver.city|default_if_none:'' }}"
+                data-address="{{ driver.address|default_if_none:'' }}"
+
+                data-emergency-contact-name="{{ driver.emergency_contact_name|default_if_none:'' }}"
+                data-emergency-contact-phone="{{ driver.emergency_contact_phone|default_if_none:'' }}"
+
+                data-license-number="{{ driver.license_number }}"
+                data-license-type="{{ driver.license_type }}"
+                data-license-type-display="{{ driver.get_license_type_display }}"
+                data-license-issue-date="{{ driver.license_issue_date|date:'Y-m-d' }}"
+                data-license-issue-date-display="{{ driver.license_issue_date|date:'d M Y' }}"
+                data-license-expiry-date="{{ driver.license_expiry_date|date:'Y-m-d' }}"
+                data-license-expiry-date-display="{{ driver.license_expiry_date|date:'d M Y' }}"
+                data-license-authority="{{ driver.license_authority|default_if_none:'' }}"
+                data-license-expiry-status="{{ driver.license_expiry_status }}"
+
+                data-joining-date="{{ driver.joining_date|date:'Y-m-d' }}"
+                data-joining-date-display="{{ driver.joining_date|date:'d M Y' }}"
+                data-status="{{ driver.status }}"
+                data-status-display="{{ driver.get_status_display }}"
+                data-notes="{{ driver.notes|default_if_none:'' }}"
+                data-created-at="{{ driver.created_at|date:'d M Y h:i A' }}"
+                data-updated-at="{{ driver.updated_at|date:'d M Y h:i A' }}"
+              >
+
+                <td class="link">{{ driver.driver_code }}</td>
+
+                <td>{{ driver.full_name }}</td>
+
+                <td>{{ driver.phone }}</td>
+
+                <td>{{ driver.cnic }}</td>
+
+                <td>
+                  <span class="license-badge {{ driver.license_expiry_status }}">
+                    {{ driver.license_expiry_date|date:"d M Y" }}
+                  </span>
+                </td>
+
+                <td>
+                  <span class="status-badge {{ driver.status }}">
+                    {{ driver.get_status_display }}
+                  </span>
+                </td>
+
+                <td>
+                  <div class="action-buttons">
+
+                    <button
+                      type="button"
+                      class="edit-btn action-btn"
+                      onclick="openDriverModal(this)"
+                    >
+                      Edit
+                    </button>
+
+                    <form
+                    method="POST"
+                    action="{% url 'drivers:driver_delete' driver.id %}"
+                    class="driver-delete-form"
+                    >
+                    {% csrf_token %}
+
+                    <button
+                        type="button"
+                        class="delete-btn action-btn"
+                        onclick="openDeleteDriverConfirm(event, this)"
+                    >
+                        Delete
+                    </button>
+                    </form>
+
+                  </div>
+                </td>
+
+              </tr>
+
+              {% empty %}
+
+              <tr>
+                <td colspan="7" style="text-align:center; padding:20px;">
+                  No drivers found.
+                </td>
+              </tr>
+
+              {% endfor %}
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- RIGHT DETAILS PANEL -->
+    <div class="drivers-right hidden" id="driverPanel">
+
+      <div class="panel-header">
+        <h3 id="panelDriverTitle">Driver Details</h3>
+
+        <button
+          type="button"
+          class="close-btn"
+          onclick="closeDriverPanel()"
+        >
+          ✖
+        </button>
+      </div>
+
+      <div class="panel-sub">
+        <span>Driver Code:</span>
+        <strong id="panelDriverCode">—</strong>
+      </div>
+
+      <div class="panel-card">
+        <h4>Personal Information</h4>
+
+        <div class="row-line">
+          <span>Name</span>
+          <strong id="panelFullName">—</strong>
+        </div>
+
+        <div class="row-line">
+          <span>Father Name</span>
+          <strong id="panelFatherName">—</strong>
+        </div>
+
+        <div class="row-line">
+          <span>CNIC</span>
+          <strong id="panelCnic">—</strong>
+        </div>
+
+        <div class="row-line">
+          <span>Date of Birth</span>
+          <strong id="panelDob">—</strong>
+        </div>
+
+        <div class="row-line">
+          <span>Driver Type</span>
+          <strong id="panelDriverType">—</strong>
+        </div>
+      </div>
+
+      <div class="panel-card">
+        <h4>Contact Information</h4>
+
+        <div class="row-line">
+          <span>Phone</span>
+          <strong id="panelPhone">—</strong>
+        </div>
+
+        <div class="row-line">
+          <span>Alternate Phone</span>
+          <strong id="panelAlternatePhone">—</strong>
+        </div>
+
+        <div class="row-line">
+          <span>City</span>
+          <strong id="panelCity">—</strong>
+        </div>
+
+        <div class="row-line column-line">
+          <span>Address</span>
+          <strong id="panelAddress">—</strong>
+        </div>
+      </div>
+
+      <div class="panel-card">
+        <h4>License Information</h4>
+
+        <div class="row-line">
+          <span>License No</span>
+          <strong id="panelLicenseNo">—</strong>
+        </div>
+
+        <div class="row-line">
+          <span>License Type</span>
+          <strong id="panelLicenseType">—</strong>
+        </div>
+
+        <div class="row-line">
+          <span>Issue Date</span>
+          <strong id="panelLicenseIssue">—</strong>
+        </div>
+
+        <div class="row-line">
+          <span>Expiry Date</span>
+          <strong id="panelLicenseExpiry">—</strong>
+        </div>
+
+        <div class="row-line">
+          <span>Authority</span>
+          <strong id="panelLicenseAuthority">—</strong>
+        </div>
+      </div>
+
+      <div class="panel-card">
+        <h4>Emergency Contact</h4>
+
+        <div class="row-line">
+          <span>Name</span>
+          <strong id="panelEmergencyName">—</strong>
+        </div>
+
+        <div class="row-line">
+          <span>Phone</span>
+          <strong id="panelEmergencyPhone">—</strong>
+        </div>
+      </div>
+
+      <div class="panel-card">
+        <h4>Employment & Status</h4>
+
+        <div class="row-line">
+          <span>Status</span>
+          <strong id="panelStatus">—</strong>
+        </div>
+
+        <div class="row-line">
+          <span>Joining Date</span>
+          <strong id="panelJoiningDate">—</strong>
+        </div>
+      </div>
+
+      <div class="panel-card">
+        <h4>Notes</h4>
+        <p id="panelNotes">No notes added.</p>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- DELETE CONFIRMATION MODAL -->
+<div class="custom-confirm-overlay hidden" id="deleteDriverConfirmModal">
+
+  <div class="custom-confirm-box">
+
+    <div class="confirm-icon">
+      !
+    </div>
+
+    <h3>Delete Driver?</h3>
+
+    <p>
+      Are you sure you want to delete
+      <strong id="deleteDriverName">this driver</strong>?
+    </p>
+
+    <p class="confirm-note">
+      If this driver is already linked with records, system will mark him inactive instead of deleting.
+    </p>
+
+    <div class="confirm-actions">
+
+      <button
+        type="button"
+        class="secondary-btn"
+        onclick="closeDeleteDriverConfirm(event)"
+      >
+        Cancel
+      </button>
+
+      <button
+        type="button"
+        class="danger-btn"
+        onclick="confirmDeleteDriver(event)"
+      >
+        Yes, Delete
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- CREATE / EDIT DRIVER MODAL -->
+<div class="driver-modal-overlay hidden" id="driverModal">
+
+  <div class="driver-modal">
+
+    <div class="modal-header">
+      <h2 id="driverModalTitle">Add Driver</h2>
+
+      <button
+        type="button"
+        class="close-btn"
+        onclick="closeDriverModal()"
+      >
+        ✖
+      </button>
+    </div>
+
+    <form
+      method="POST"
+      id="driverForm"
+      action="{% url 'drivers:driver_create' %}"
+      data-create-url="{% url 'drivers:driver_create' %}"
+    >
+      {% csrf_token %}
+
+      <div class="modal-grid">
+
+        <div class="form-section">
+          <h3>Personal Information</h3>
+
+          <div class="form-row">
+            <div>
+              <label>Full Name *</label>
+              <input type="text" name="full_name" id="fullNameInput" required>
+            </div>
+
+            <div>
+              <label>Father Name</label>
+              <input type="text" name="father_name" id="fatherNameInput">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div>
+              <label>CNIC *</label>
+              <input type="text" name="cnic" id="cnicInput" required placeholder="35202-1234567-1">
+            </div>
+
+            <div>
+              <label>Date of Birth</label>
+              <input type="date" name="date_of_birth" id="dobInput">
+            </div>
+          </div>
+
+          <div>
+            <label>Driver Type *</label>
+            <select name="driver_type" id="driverTypeInput" required>
+              <option value="company">Company Driver</option>
+              <option value="contract">Contract Driver</option>
+              <option value="external">External / Market Driver</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Contact Information</h3>
+
+          <div class="form-row">
+            <div>
+              <label>Phone *</label>
+              <input type="text" name="phone" id="phoneInput" required placeholder="0300-1234567">
+            </div>
+
+            <div>
+              <label>Alternate Phone</label>
+              <input type="text" name="alternate_phone" id="alternatePhoneInput">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div>
+              <label>City</label>
+              <input type="text" name="city" id="cityInput">
+            </div>
+
+            <div>
+              <label>Emergency Contact Phone</label>
+              <input type="text" name="emergency_contact_phone" id="emergencyPhoneInput">
+            </div>
+          </div>
+
+          <div>
+            <label>Emergency Contact Name</label>
+            <input type="text" name="emergency_contact_name" id="emergencyNameInput">
+          </div>
+
+          <div>
+            <label>Address</label>
+            <textarea name="address" id="addressInput"></textarea>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>License Information</h3>
+
+          <div class="form-row">
+            <div>
+              <label>License Number *</label>
+              <input type="text" name="license_number" id="licenseNumberInput" required>
+            </div>
+
+            <div>
+              <label>License Type *</label>
+              <select name="license_type" id="licenseTypeInput" required>
+                <option value="htv">HTV</option>
+                <option value="ltv">LTV</option>
+                <option value="psv">PSV</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div>
+              <label>Issue Date</label>
+              <input type="date" name="license_issue_date" id="licenseIssueInput">
+            </div>
+
+            <div>
+              <label>Expiry Date *</label>
+              <input type="date" name="license_expiry_date" id="licenseExpiryInput" required>
+            </div>
+          </div>
+
+          <div>
+            <label>License Authority</label>
+            <input type="text" name="license_authority" id="licenseAuthorityInput">
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Employment & Status</h3>
+
+          <div class="form-row">
+            <div>
+              <label>Joining Date</label>
+              <input type="date" name="joining_date" id="joiningDateInput">
+            </div>
+
+            <div>
+              <label>Status *</label>
+              <select name="status" id="statusInput" required>
+                <option value="active">Active</option>
+                <option value="on_leave">On Leave</option>
+                <option value="suspended">Suspended</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label>Notes</label>
+            <textarea name="notes" id="notesInput"></textarea>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="secondary-btn" onclick="closeDriverModal()">
+          Cancel
+        </button>
+
+        <button type="submit" class="primary-btn" id="driverSubmitBtn">
+          Save Driver
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+
+</div>
+
+{% endblock content %}
+
+{% block extra_js %}
+<script src="{% static 'js/drivers.js' %}"></script>
+{% endblock extra_js %}

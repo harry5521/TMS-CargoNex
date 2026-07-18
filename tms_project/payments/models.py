@@ -16,7 +16,9 @@ class Payment(models.Model):
     payment_id = models.CharField(
         max_length=20,
         unique=True,
-        blank=True
+        null=True,
+        blank=True,
+        editable=False
     )
 
     builty = models.ForeignKey(
@@ -60,33 +62,20 @@ class Payment(models.Model):
     )
 
     def save(self, *args, **kwargs):
-
-        if not self.payment_id:
-
-            last_payment = (
-                Payment.objects
-                .order_by("-id")
-                .first()
-            )
-
-            if last_payment:
-
-                last_number = int(
-                    last_payment.payment_id.split("-")[1]
-                )
-
-                next_number = last_number + 1
-
-            else:
-
-                next_number = 1001
-
-            self.payment_id = (
-                f"PAY-{next_number}"
-            )
+        creating = self._state.adding
 
         super().save(*args, **kwargs)
 
-    def __str__(self):
+        if creating and not self.payment_id:
+            payment_id = f"PAY-{self.pk:06d}"
 
+            type(self).objects.filter(
+                pk=self.pk
+            ).update(
+                payment_id=payment_id
+            )
+
+            self.payment_id = payment_id
+
+    def __str__(self):
         return self.payment_id

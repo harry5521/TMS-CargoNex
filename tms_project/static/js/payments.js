@@ -1,275 +1,766 @@
 /* =========================
-   ROW CLICK → DETAIL PANEL
+   PAYMENT MODULE STATE
 ========================= */
-document.addEventListener("click", function(e) {
-  const row = e.target.closest(".payment-row");
-  if (!row || e.target.closest(".primary-btn") || e.target.closest(".close-btn")) return;
 
-  const id = row.getAttribute("data-id");
-  const date = row.getAttribute("data-date");
-  const customer = row.getAttribute("data-customer");
-  const builty = row.getAttribute("data-builty");
-  const mode = row.getAttribute("data-mode");
-  const reference = row.getAttribute("data-reference");
-  const remarks = row.getAttribute("data-remarks");
-  const amount = row.getAttribute("data-amount");
-
-  selectPayment({ id, date, customer, builty, mode, reference, remarks, amount });
-});
+let activeOutstanding = 0;
+let activePaymentStatus = "";
+let searchTimeout = null;
+let searchController = null;
 
 
 /* =========================
-   OPEN DETAIL PANEL
+   HELPERS
 ========================= */
-function selectPayment(p) {
-  document.getElementById("paymentPanel").classList.remove("hidden");
 
-  document.getElementById("payTitle").innerText = p.id + " Details";
-  document.getElementById("payDate").innerText = p.date;
-  document.getElementById("payCustomer").innerText = p.customer;
-  document.getElementById("payBuilty").innerText = p.builty;
-  document.getElementById("payMethod").innerText = p.mode;
-  document.getElementById("payReference").innerText = p.reference ? p.reference : "—";
-  document.getElementById("payRemarks").innerText = p.remarks ? p.remarks : "No remarks added.";
-  document.getElementById("payAmount").innerText = parseFloat(p.amount).toLocaleString('en-IN'); 
+function getAmountInput() {
+  return document.getElementById("modalAmountInput");
 }
 
-/* =========================
-   DATE FILTER TOGGLE LOGIC
-========================= */
-document.addEventListener("DOMContentLoaded", function() {
-  const datePeriodSelect = document.getElementById("datePeriodSelect");
-  const dateRangeBox = document.getElementById("dateRangeBox");
-  const startDate = document.getElementById("startDate");
-  const endDate = document.getElementById("endDate");
+function getPaymentSubmitButtons() {
+  return document.querySelectorAll(
+    '#paymentCreateForm button[type="submit"]'
+  );
+}
 
-  if (datePeriodSelect && dateRangeBox) {
-    datePeriodSelect.addEventListener("change", function() {
-      if (this.value === "custom") {
-        dateRangeBox.classList.remove("hidden");
-        dateRangeBox.style.display = "flex"; // Inline row alignment ensure karne k liye
-      } else {
-        dateRangeBox.classList.add("hidden");
-        dateRangeBox.style.display = "none";
-        if (startDate) startDate.value = "";
-        if (endDate) endDate.value = "";
-      }
-    });
+function setPaymentSubmitDisabled(disabled) {
+  getPaymentSubmitButtons().forEach(button => {
+    button.disabled = disabled;
+    button.style.opacity = disabled ? ".5" : "1";
+    button.style.cursor = disabled ? "not-allowed" : "pointer";
+  });
+}
+
+function showPaymentWarning(message) {
+  const warning = document.getElementById("paymentWarning");
+
+  if (!warning) return;
+
+  warning.textContent = `⚠ ${message}`;
+  warning.classList.remove("hidden");
+}
+
+function hidePaymentWarning() {
+  const warning = document.getElementById("paymentWarning");
+
+  if (!warning) return;
+
+  warning.textContent = "";
+  warning.classList.add("hidden");
+}
+
+function formatMoney(value) {
+  return Number(value || 0).toLocaleString("en-PK", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  });
+}
+
+
+/* =========================
+   LIVE BALANCE
+========================= */
+
+function calculateLiveBalances() {
+  const amountInput = getAmountInput();
+  const payingAmount = parseFloat(amountInput?.value) || 0;
+  const remaining = activeOutstanding - payingAmount;
+
+  document.getElementById("sidePayingMainTotal").innerText =
+    `PKR ${formatMoney(payingAmount)}`;
+
+  const remainingText = document.getElementById("sideRemainingText");
+
+  if (remaining >= 0) {
+    remainingText.innerText = `PKR ${formatMoney(remaining)}`;
+    remainingText.style.color = "#2563eb";
+  } else {
+    remainingText.innerText =
+      `Overpayment: PKR ${formatMoney(Math.abs(remaining))}`;
+
+    remainingText.style.color = "#dc2626";
   }
+}
+
+
+/* =========================
+   PAYMENT VALIDATION
+========================= */
+
+function updatePaymentValidation(showRequiredErrors = false) {
+
+  const selectedBuiltyId =
+    document.getElementById("selectedBuiltyId")?.value || "";
+
+  const amountInput =
+    document.getElementById("modalAmountInput");
+
+  const amountValue =
+    amountInput?.value.trim() || "";
+
+  const amount =
+    Number(amountValue);
+
+  const paymentMode =
+    document.getElementById("selectedPaymentMode")?.value || "cash";
+
+  const referenceInput =
+    document.getElementById("modalReferenceInput");
+
+  const reference =
+    referenceInput?.value.trim() || "";
+
+
+  /*
+   * Har validation run ke start par purani disabled
+   * state clear karna zaroori hai.
+   */
+  if (amountInput) {
+    amountInput.disabled = false;
+  }
+
+  setPaymentSubmitDisabled(false);
+  hidePaymentWarning();
+
+
+  /*
+   * No Builty selected
+   * Buttons enabled rahenge.
+   * Form submit hone par warning show hogi.
+   */
+  if (!selectedBuiltyId) {
+
+    if (showRequiredErrors) {
+      showPaymentWarning(
+        "Please select a valid Builty."
+      );
+    }
+
+    return false;
+  }
+
+
+  /*
+   * Fully paid Builty
+   */
+  if (
+    activePaymentStatus === "paid" ||
+    activeOutstanding <= 0
+  ) {
+
+    if (amountInput) {
+      amountInput.value = "";
+      amountInput.disabled = true;
+    }
+
+    calculateLiveBalances();
+
+    showPaymentWarning(
+      "This Builty has already been fully paid. No further payment can be recorded."
+    );
+
+    setPaymentSubmitDisabled(true);
+
+    return false;
+  }
+
+
+  /*
+   * Empty amount
+   * Buttons enabled rahenge.
+   * Submit par required warning show hogi.
+   */
+  if (amountValue === "") {
+
+    if (showRequiredErrors) {
+      showPaymentWarning(
+        "Please enter the payment amount."
+      );
+    }
+
+    return false;
+  }
+
+
+  /*
+   * Invalid zero/negative amount
+   */
+  if (
+    !Number.isFinite(amount) ||
+    amount <= 0
+  ) {
+
+    showPaymentWarning(
+      "Payment amount must be greater than zero."
+    );
+
+    setPaymentSubmitDisabled(true);
+
+    return false;
+  }
+
+
+  /*
+   * Overpayment
+   */
+  if (amount > activeOutstanding) {
+
+    showPaymentWarning(
+      "Payment amount cannot exceed the outstanding amount."
+    );
+
+    setPaymentSubmitDisabled(true);
+
+    return false;
+  }
+
+
+  /*
+   * Non-cash reference validation
+   * Buttons disable nahi honge.
+   * Submit par warning show hogi.
+   */
+  if (
+    paymentMode !== "cash" &&
+    !reference
+  ) {
+
+    if (showRequiredErrors) {
+
+      showPaymentWarning(
+        paymentMode === "cheque"
+          ? "Cheque number is required."
+          : "Transaction reference number is required."
+      );
+
+    }
+
+    return false;
+  }
+
+
+  /*
+   * Everything valid
+   */
+  hidePaymentWarning();
+  setPaymentSubmitDisabled(false);
+
+  return true;
+}
+
+
+/* =========================
+   RESET SELECTED BUILTY
+========================= */
+
+function resetSelectedBuiltyState(keepSearchText = false) {
+  const amountInput = getAmountInput();
+
+  document.getElementById("selectedBuiltyId").value = "";
+  document.getElementById("modalCustomerName").value = "";
+
+  if (!keepSearchText) {
+    document.getElementById("builtySearchInput").value = "";
+  }
+
+  document.getElementById("modalTotalFreight").innerText = "PKR 0";
+  document.getElementById("modalAdvancePaid").innerText = "PKR 0";
+  document.getElementById("modalOutstanding").innerText = "PKR 0";
+  document.getElementById("sideCurrentBalance").innerText = "PKR 0";
+
+  activeOutstanding = 0;
+  activePaymentStatus = "";
+
+  if (amountInput) {
+    amountInput.value = "";
+    amountInput.disabled = false;
+  }
+
+calculateLiveBalances();
+hidePaymentWarning();
+setPaymentSubmitDisabled(false);
+}
+
+
+/* =========================
+   TABLE ROW → DETAIL PANEL
+========================= */
+
+document.addEventListener("click", function (event) {
+  const row = event.target.closest(".payment-row");
+
+  if (
+    !row ||
+    event.target.closest(".primary-btn") ||
+    event.target.closest(".close-btn")
+  ) {
+    return;
+  }
+
+  selectPayment({
+    id: row.dataset.id,
+    date: row.dataset.date,
+    customer: row.dataset.customer,
+    builty: row.dataset.builty,
+    mode: row.dataset.mode,
+    reference: row.dataset.reference,
+    remarks: row.dataset.remarks,
+    amount: row.dataset.amount
+  });
 });
 
+function selectPayment(payment) {
+  document.getElementById("paymentPanel").classList.remove("hidden");
 
-/* =========================
-   CLOSE DETAIL PANEL
-========================= */
+  document.getElementById("payTitle").innerText =
+    `${payment.id} Details`;
+
+  document.getElementById("payDate").innerText = payment.date;
+  document.getElementById("payCustomer").innerText = payment.customer;
+  document.getElementById("payBuilty").innerText = payment.builty;
+  document.getElementById("payMethod").innerText = payment.mode;
+
+  document.getElementById("payReference").innerText =
+    payment.reference || "—";
+
+  document.getElementById("payRemarks").innerText =
+    payment.remarks || "No remarks added.";
+
+  document.getElementById("payAmount").innerText =
+    formatMoney(payment.amount);
+}
+
 function closePayment() {
   document.getElementById("paymentPanel").classList.add("hidden");
 }
 
 
-/* ==========================================
-   GLOBAL MODAL CONTROLS (Accessible from HTML)
-========================================== */
+/* =========================
+   MODAL CONTROLS
+========================= */
+
 function openReceiptModal() {
-  const modal = document.getElementById("receiptModal");
-  if (modal) {
-    modal.classList.remove("hidden");
-    
-    // Default date ko set karne ki logic yahan move kar di taake modal khulte hi date field populate ho
-    const dateInput = document.getElementById("modalPaymentDate");
-    if (dateInput && !dateInput.value) {
-      dateInput.value = new Date().toISOString().split('T')[0];
+
+  const modal =
+    document.getElementById("receiptModal");
+
+  if (!modal) return;
+
+  modal.classList.remove("hidden");
+
+  const dateInput =
+    document.getElementById("modalPaymentDate");
+
+  if (dateInput && !dateInput.value) {
+
+    const localDate = new Date();
+
+    localDate.setMinutes(
+      localDate.getMinutes() -
+      localDate.getTimezoneOffset()
+    );
+
+    dateInput.value =
+      localDate.toISOString().split("T")[0];
+  }
+
+  const selectedBuiltyId =
+    document.getElementById(
+      "selectedBuiltyId"
+    )?.value;
+
+  if (!selectedBuiltyId) {
+
+    const amountInput =
+      document.getElementById(
+        "modalAmountInput"
+      );
+
+    if (amountInput) {
+      amountInput.disabled = false;
     }
+
+    hidePaymentWarning();
+    setPaymentSubmitDisabled(false);
+
+  } else {
+
+    updatePaymentValidation(false);
+
   }
 }
 
 function closeReceiptModal() {
   const modal = document.getElementById("receiptModal");
-  if (modal) {
-    modal.classList.add("hidden");
-    
-    // 1. Main Form values reset (Inputs, textarea clear karega)
-    const form = document.getElementById("paymentCreateForm");
-    if (form) form.reset();
-    
-    // 2. Hidden field inputs reset
-    document.getElementById("selectedBuiltyId").value = "";
-    document.getElementById("selectedPaymentMode").value = "cash";
-    
-    // 3. Read-only Monetary Text labels reset (Left Side)
-    document.getElementById("modalTotalFreight").innerText = "₹0";
-    document.getElementById("modalAdvancePaid").innerText = "₹0";
-    document.getElementById("modalOutstanding").innerText = "₹0";
-    
-    // 4. Live Financial Summary Text reset (Right Side)
-    document.getElementById("sideCurrentBalance").innerText = "₹0";
-    document.getElementById("sideRemainingText").innerText = "₹0";
-    document.getElementById("sideRemainingText").style.color = "#475569"; // Default state color
-    document.getElementById("sidePayingMainTotal").innerText = "₹0";
-    
-    // 5. Global tracker active outstanding variable variable ko reset karein
-    activeOutstanding = 0;
+  const form = document.getElementById("paymentCreateForm");
 
-    // 6. Payment Mode buttons classes reset (Cash active ho jaye baki inactive)
-    const modeButtons = document.querySelectorAll("#paymentModeGroup .tag");
-    modeButtons.forEach(b => b.classList.remove("active"));
-    const cashBtn = document.querySelector('#paymentModeGroup .tag[data-mode="cash"]');
-    if (cashBtn) cashBtn.classList.add("active");
+  if (!modal) return;
 
-    // 7. Reference box container ko hide karein
-    const refBox = document.getElementById("referenceFieldBox");
-    if (refBox) refBox.classList.add("hidden");
+  modal.classList.add("hidden");
 
-    // 8. Dropdown suggestions list hide aur clear
-    const dropdownList = document.getElementById("builtyDropdownList");
-    if (dropdownList) {
-      dropdownList.classList.add("hidden");
-      dropdownList.innerHTML = "";
-    }
+  if (searchController) {
+    searchController.abort();
+    searchController = null;
   }
+
+  clearTimeout(searchTimeout);
+
+  if (form) {
+    form.reset();
+  }
+
+  document.getElementById("selectedPaymentMode").value = "cash";
+
+  const modeButtons =
+    document.querySelectorAll("#paymentModeGroup .tag");
+
+  modeButtons.forEach(button =>
+    button.classList.remove("active")
+  );
+
+  const cashButton =
+    document.querySelector(
+      '#paymentModeGroup .tag[data-mode="cash"]'
+    );
+
+  if (cashButton) {
+    cashButton.classList.add("active");
+  }
+
+  const referenceBox =
+    document.getElementById("referenceFieldBox");
+
+  const referenceInput =
+    document.getElementById("modalReferenceInput");
+
+  if (referenceBox) {
+    referenceBox.classList.add("hidden");
+  }
+
+  if (referenceInput) {
+    referenceInput.required = false;
+    referenceInput.value = "";
+  }
+
+  const dropdown =
+    document.getElementById("builtyDropdownList");
+
+  if (dropdown) {
+    dropdown.innerHTML = "";
+    dropdown.classList.add("hidden");
+  }
+
+  resetSelectedBuiltyState(false);
+  const amountInput =
+  document.getElementById("modalAmountInput");
+
+if (amountInput) {
+  amountInput.disabled = false;
+}
+
+hidePaymentWarning();
+setPaymentSubmitDisabled(false);
 }
 
 
-/* ==========================================
-   RECEIPT MODAL DYNAMIC INTERACTION LOGIC
-========================================== */
-const sampleBuilties = [
-  { id: 1, builty_no: "B-88291", customer_name: "Global Logistics", total_freight: 12500, advance_paid: 5000, outstanding: 7500 },
-  { id: 2, builty_no: "B-88285", customer_name: "Swift Transporters", total_freight: 25000, advance_paid: 15000, outstanding: 10000 },
-  { id: 3, builty_no: "B-89001", customer_name: "Atlas Honda", total_freight: 50000, advance_paid: 0, outstanding: 50000 }
-];
+/* =========================
+   DOM READY
+========================= */
 
-let activeOutstanding = 0;
+document.addEventListener("DOMContentLoaded", function () {
+  const builtyInput =
+    document.getElementById("builtySearchInput");
 
-document.addEventListener("DOMContentLoaded", function() {
-  const builtyInput = document.getElementById("builtySearchInput");
-  const dropdownList = document.getElementById("builtyDropdownList");
-  const amountInput = document.getElementById("modalAmountInput");
-  const modeButtons = document.querySelectorAll("#paymentModeGroup .tag");
-  const refBox = document.getElementById("referenceFieldBox");
-  const selectedModeInput = document.getElementById("selectedPaymentMode");
+  const dropdownList =
+    document.getElementById("builtyDropdownList");
 
-  /* 1. SEARCHABLE BUILTY DROPDOWN LOGIC */
+  const amountInput =
+    document.getElementById("modalAmountInput");
+
+  const paymentForm =
+    document.getElementById("paymentCreateForm");
+
+  const modeButtons =
+    document.querySelectorAll("#paymentModeGroup .tag");
+
+  const referenceBox =
+    document.getElementById("referenceFieldBox");
+
+  const referenceInput =
+    document.getElementById("modalReferenceInput");
+
+  const selectedModeInput =
+    document.getElementById("selectedPaymentMode");
+
+
+  /* DATE FILTER */
+
+  const datePeriodSelect =
+    document.getElementById("datePeriodSelect");
+
+  const dateRangeBox =
+    document.getElementById("dateRangeBox");
+
+  const startDate =
+    document.getElementById("startDate");
+
+  const endDate =
+    document.getElementById("endDate");
+
+  if (datePeriodSelect && dateRangeBox) {
+    datePeriodSelect.addEventListener("change", function () {
+      const isCustom = this.value === "custom";
+
+      dateRangeBox.classList.toggle("hidden", !isCustom);
+      dateRangeBox.style.display = isCustom ? "flex" : "none";
+
+      if (!isCustom) {
+        if (startDate) startDate.value = "";
+        if (endDate) endDate.value = "";
+      }
+    });
+  }
+
+
+  /* INITIAL STATE */
+
+  setPaymentSubmitDisabled(false);
+
+
+  /* BUILTY SEARCH */
+
   if (builtyInput && dropdownList) {
-    builtyInput.addEventListener("input", function() {
-      const value = this.value.toLowerCase().trim();
+    builtyInput.addEventListener("input", function () {
+      clearTimeout(searchTimeout);
+
+      const query = this.value.trim();
+
+      /*
+       User ne text change kiya hai, is liye pehle selected
+       Builty ko invalidate karna zaroori hai.
+      */
+      resetSelectedBuiltyState(true);
+
       dropdownList.innerHTML = "";
 
-      if (!value) {
+      if (!query) {
         dropdownList.classList.add("hidden");
+
+        if (searchController) {
+          searchController.abort();
+          searchController = null;
+        }
+
         return;
       }
 
-      const filtered = sampleBuilties.filter(b => b.builty_no.toLowerCase().includes(value));
+      searchTimeout = setTimeout(async function () {
+        if (searchController) {
+          searchController.abort();
+        }
 
-      if (filtered.length > 0) {
-        dropdownList.classList.remove("hidden");
-        filtered.forEach(item => {
-          const div = document.createElement("div");
-          div.style.padding = "10px";
-          div.style.cursor = "pointer";
-          div.style.borderBottom = "1px solid #f1f5f9";
-          div.innerText = `${item.builty_no} (${item.customer_name})`;
-          
-          div.addEventListener("mouseover", () => div.style.backgroundColor = "#f8fafc");
-          div.addEventListener("mouseout", () => div.style.backgroundColor = "transparent");
+        searchController = new AbortController();
 
-          div.addEventListener("click", function() {
-            builtyInput.value = item.builty_no;
-            document.getElementById("selectedBuiltyId").value = item.id;
-            document.getElementById("modalCustomerName").value = item.customer_name;
-            
-            document.getElementById("modalTotalFreight").innerText = "PKR " + item.total_freight.toLocaleString();
-            document.getElementById("modalAdvancePaid").innerText = "PKR " + item.advance_paid.toLocaleString();
-            document.getElementById("modalOutstanding").innerText = "PKR " + item.outstanding.toLocaleString();
-            
-            document.getElementById("sideCurrentBalance").innerText = "PKR " + item.outstanding.toLocaleString();
-            activeOutstanding = item.outstanding;
-            
-            calculateLiveBalances();
+        try {
+          const response = await fetch(
+            `/tms/payments/search-builties/?q=${encodeURIComponent(query)}`,
+            { signal: searchController.signal }
+          );
+
+          if (!response.ok) {
+            throw new Error("Unable to search Builties.");
+          }
+
+          const builties = await response.json();
+
+          /*
+           Agar request ke response ke waqt input text change
+           ho chuka ho to purana result render mat karo.
+          */
+          if (builtyInput.value.trim() !== query) {
+            return;
+          }
+
+          dropdownList.innerHTML = "";
+
+          if (!builties.length) {
             dropdownList.classList.add("hidden");
+            return;
+          }
+
+          dropdownList.classList.remove("hidden");
+
+          builties.forEach(item => {
+            const option = document.createElement("div");
+            const title = document.createElement("strong");
+            const detail = document.createElement("small");
+
+            option.style.padding = "10px";
+            option.style.cursor = "pointer";
+            option.style.borderBottom = "1px solid #f1f5f9";
+
+            title.textContent = item.builty_no;
+
+            const statusText =
+              item.payment_status === "paid"
+                ? " ✅ Paid"
+                : item.payment_status === "partial"
+                  ? " • Partial"
+                  : " • To Pay";
+
+            detail.textContent =
+              `${item.customer_name}${statusText}`;
+
+            option.appendChild(title);
+            option.appendChild(document.createElement("br"));
+            option.appendChild(detail);
+
+            option.addEventListener("mouseenter", function () {
+              option.style.background = "#f8fafc";
+            });
+
+            option.addEventListener("mouseleave", function () {
+              option.style.background = "";
+            });
+
+            option.addEventListener("click", function () {
+              builtyInput.value = item.builty_no;
+
+              document.getElementById(
+                "selectedBuiltyId"
+              ).value = item.id;
+
+              document.getElementById(
+                "modalCustomerName"
+              ).value = item.customer_name;
+
+              document.getElementById(
+                "modalTotalFreight"
+              ).innerText =
+                `PKR ${formatMoney(item.total_freight)}`;
+
+              document.getElementById(
+                "modalAdvancePaid"
+              ).innerText =
+                `PKR ${formatMoney(item.advance_paid)}`;
+
+              document.getElementById(
+                "modalOutstanding"
+              ).innerText =
+                `PKR ${formatMoney(item.outstanding)}`;
+
+              document.getElementById(
+                "sideCurrentBalance"
+              ).innerText =
+                `PKR ${formatMoney(item.outstanding)}`;
+
+              activeOutstanding =
+                Number(item.outstanding);
+
+              activePaymentStatus =
+                item.payment_status;
+
+              dropdownList.classList.add("hidden");
+
+              calculateLiveBalances();
+              updatePaymentValidation(false);
+            });
+
+            dropdownList.appendChild(option);
           });
-          dropdownList.appendChild(div);
-        });
-      } else {
-        dropdownList.classList.add("hidden");
-      }
+
+        } catch (error) {
+          if (error.name !== "AbortError") {
+            console.error(error);
+            dropdownList.classList.add("hidden");
+          }
+        }
+      }, 300);
     });
 
-    document.addEventListener("click", function(e) {
-      if (!builtyInput.contains(e.target) && !dropdownList.contains(e.target)) {
+    document.addEventListener("click", function (event) {
+      if (
+        !builtyInput.contains(event.target) &&
+        !dropdownList.contains(event.target)
+      ) {
         dropdownList.classList.add("hidden");
       }
     });
   }
 
-  /* 2. LIVE FINANCIAL SUMMARY LOGIC */
+
+  /* AMOUNT VALIDATION */
+
   if (amountInput) {
-    amountInput.addEventListener("input", function() {
+    amountInput.addEventListener("input", function () {
       calculateLiveBalances();
+      updatePaymentValidation(false);
     });
   }
 
-  function calculateLiveBalances() {
-  const payingAmount = parseFloat(document.getElementById("modalAmountInput").value) || 0;
-  
-  // 1. Main Amount (Save Payment button ke upar) -> Yahan input key-up live amount show hogi
-  document.getElementById("sidePayingMainTotal").innerText = "PKR " + payingAmount.toLocaleString('en-IN');
 
-  // 2. Remaining Logic Box calculation (Outstanding minus Paying Now)
-  const remaining = activeOutstanding - payingAmount;
-  
-  if (remaining >= 0) {
-    document.getElementById("sideRemainingText").innerText = "PKR " + remaining.toLocaleString('en-IN');
-    document.getElementById("sideRemainingText").style.color = "#2563eb"; // Standard blue color
-  } else {
-    // Agar input outstanding se zyada ho jaye to advance status show ho jaye
-    document.getElementById("sideRemainingText").innerText = "Advance: PKR " + Math.abs(remaining).toLocaleString('en-IN');
-    document.getElementById("sideRemainingText").style.color = "#16a34a"; // Green color for advance/surplus
-  }
-}
+  /* PAYMENT MODE */
 
-  /* 3. CONDITIONAL PAYMENT MODE & REFERENCE BOX */
-  modeButtons.forEach(btn => {
-    btn.addEventListener("click", function() {
-      modeButtons.forEach(b => b.classList.remove("active"));
+  modeButtons.forEach(button => {
+    button.addEventListener("click", function () {
+      modeButtons.forEach(item =>
+        item.classList.remove("active")
+      );
+
       this.classList.add("active");
 
-      const selectedMode = this.getAttribute("data-mode");
+      const selectedMode = this.dataset.mode;
       selectedModeInput.value = selectedMode;
 
       if (selectedMode === "cash") {
-        refBox.classList.add("hidden");
-        document.getElementById("modalReferenceInput").value = "";
+        referenceBox.classList.add("hidden");
+        referenceInput.value = "";
+        referenceInput.required = false;
       } else {
-        refBox.classList.remove("hidden");
-        if (selectedMode === "cheque") {
-          document.getElementById("referenceLabel").innerText = "Cheque No *";
-        } else {
-          document.getElementById("referenceLabel").innerText = "Transaction Reference No *";
-        }
+        referenceBox.classList.remove("hidden");
+        referenceInput.required = true;
+
+        document.getElementById("referenceLabel").innerText =
+          selectedMode === "cheque"
+            ? "Cheque No *"
+            : "Transaction Reference No *";
       }
+
+      updatePaymentValidation(false);
     });
   });
+
+  if (referenceInput) {
+    referenceInput.addEventListener("input", function () {
+      updatePaymentValidation(false);
+    });
+  }
+
+
+  /* FINAL FORM VALIDATION */
+
+  if (paymentForm) {
+    paymentForm.addEventListener("submit", function (event) {
+      if (!updatePaymentValidation(true)) {
+        event.preventDefault();
+      }
+    });
+  }
+
+
+  /* SAVE & ADD ANOTHER */
+
+  const params = new URLSearchParams(window.location.search);
+
+  if (params.get("open_payment") === "1") {
+    openReceiptModal();
+
+    params.delete("open_payment");
+
+    const newQuery = params.toString();
+    const cleanUrl =
+      window.location.pathname +
+      (newQuery ? `?${newQuery}` : "");
+
+    window.history.replaceState({}, "", cleanUrl);
+  }
 });
-
-function submitPaymentForm(addAnother) {
-  const builtyId = document.getElementById("selectedBuiltyId").value;
-  const amount = document.getElementById("modalAmountInput").value;
-  
-  if (!builtyId) {
-    alert("Please select a valid Builty first.");
-    return;
-  }
-  if (!amount || amount <= 0) {
-    alert("Please enter a valid payment amount.");
-    return;
-  }
-
-  console.log("Submitting form...", { addAnother: addAnother });
-}
-
-
-
-// prompt
-// perfect ho gaya! chalo ab logic banaty han iski. aik or bat k ma postgres use kar raha is project ma to atomicity rakhni ha mujy or race conditions sy bhi bachna ha or bht zyada concurrent requests nhi hongi I know lekn pht bhi ma safe side chahta hon to logic robust, scalable or efficient hona chye Ok. isky iwala ye k payment kabhi bhi update or delete nhi hogi to agr tum chaho to CreateView bhi Use kar sakty lekn use CBV hi karna Ok. or jo dummy data hum js sy ly rahy han usko actual data k according rakh lo ab kyu k UI or JS blkul thik work kar rahi

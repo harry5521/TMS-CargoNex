@@ -1,0 +1,931 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link
+  rel="stylesheet"
+  href="{% static 'css/vehicles.css' %}"
+>
+{% endblock extra_css %}
+
+{% block content %}
+
+{% include "partials/alerts.html" %}
+
+<div class="content">
+
+  <div class="vehicles-layout">
+
+    <!-- LEFT SIDE -->
+    <div class="vehicles-left">
+
+      <div class="page-header">
+
+        <h2>Vehicles</h2>
+
+        <button
+          type="button"
+          class="primary-btn"
+          onclick="openVehicleModal()"
+        >
+          + Add Vehicle
+        </button>
+
+      </div>
+
+      <!-- SEARCH -->
+      <form method="GET" class="filter-bar">
+
+        <input
+          type="text"
+          name="search"
+          value="{{ request.GET.search }}"
+          placeholder="Search code, registration, make, chassis..."
+        >
+
+        <button
+          type="submit"
+          class="primary-btn"
+        >
+          Search
+        </button>
+
+      </form>
+
+      <!-- TABLE -->
+      <div class="table-section">
+
+        <div class="table-wrapper">
+
+          <table>
+
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Registration</th>
+                <th>Vehicle</th>
+                <th>Ownership</th>
+                <th>Capacity</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              {% for vehicle in vehicles %}
+
+              <tr
+                class="vehicle-row"
+                data-detail-url="{% url 'vehicles:vehicle_detail' vehicle.id %}"
+                data-update-url="{% url 'vehicles:vehicle_update' vehicle.id %}"
+                data-depreciation-url="{% url 'vehicles:vehicle_depreciation' vehicle.id %}"
+              >
+
+                <td class="link">
+                  {{ vehicle.vehicle_code }}
+                </td>
+
+                <td>
+                  {{ vehicle.registration_number }}
+                </td>
+
+                <td>
+                  {{ vehicle.get_vehicle_type_display }}
+
+                  {% if vehicle.make %}
+                  <small class="table-secondary">
+                    {{ vehicle.make }}
+                    {{ vehicle.model|default:"" }}
+                  </small>
+                  {% endif %}
+                </td>
+
+                <td>
+                  {{ vehicle.get_ownership_type_display }}
+                </td>
+
+                <td>
+                  {% if vehicle.capacity_tons %}
+                    {{ vehicle.capacity_tons }} Tons
+                  {% else %}
+                    —
+                  {% endif %}
+                </td>
+
+                <td>
+                  <span class="status-badge {{ vehicle.status }}">
+                    {{ vehicle.get_status_display }}
+                  </span>
+                </td>
+
+                <td>
+
+                  <div class="action-buttons">
+
+                    <button
+                      type="button"
+                      class="edit-btn action-btn"
+                      onclick="openVehicleModal(event, this)"
+                    >
+                      Edit
+                    </button>
+
+                    <form
+                      method="POST"
+                      action="{% url 'vehicles:vehicle_delete' vehicle.id %}"
+                      class="vehicle-delete-form"
+                    >
+                      {% csrf_token %}
+
+                      <button
+                        type="button"
+                        class="delete-btn action-btn"
+                        onclick="openVehicleDeleteConfirm(event, this)"
+                      >
+                        Delete
+                      </button>
+
+                    </form>
+
+                  </div>
+
+                </td>
+
+              </tr>
+
+              {% empty %}
+
+              <tr>
+                <td
+                  colspan="7"
+                  class="empty-row"
+                >
+                  No vehicles found.
+                </td>
+              </tr>
+
+              {% endfor %}
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+      {% if is_paginated %}
+
+      <div class="pagination">
+
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&search={{ request.GET.search }}">
+          Previous
+        </a>
+        {% endif %}
+
+        <span>
+          Page {{ page_obj.number }}
+          of {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&search={{ request.GET.search }}">
+          Next
+        </a>
+        {% endif %}
+
+      </div>
+
+      {% endif %}
+
+    </div>
+
+
+    <!-- RIGHT PANEL -->
+    <div
+      class="vehicles-right hidden"
+      id="vehiclePanel"
+    >
+
+      <div class="panel-header">
+
+        <div>
+          <h3 id="panelVehicleTitle">
+            Vehicle Details
+          </h3>
+
+          <span id="panelVehicleCode">
+            —
+          </span>
+        </div>
+
+        <button
+          type="button"
+          class="close-btn"
+          onclick="closeVehiclePanel()"
+        >
+          ✖
+        </button>
+
+      </div>
+
+      <div class="panel-card">
+
+        <h4>Vehicle Information</h4>
+
+        <div class="row-line">
+          <span>Registration</span>
+          <strong id="panelRegistration">—</strong>
+        </div>
+
+        <div class="row-line">
+          <span>Vehicle Type</span>
+          <strong id="panelVehicleType">—</strong>
+        </div>
+
+        <div class="row-line">
+          <span>Body Type</span>
+          <strong id="panelBodyType">—</strong>
+        </div>
+
+        <div class="row-line">
+          <span>Make / Model</span>
+          <strong id="panelMakeModel">—</strong>
+        </div>
+
+        <div class="row-line">
+          <span>Model Year</span>
+          <strong id="panelModelYear">—</strong>
+        </div>
+
+        <div class="row-line">
+          <span>Capacity</span>
+          <strong id="panelCapacity">—</strong>
+        </div>
+
+      </div>
+
+      <div class="panel-card">
+
+        <h4>Technical Information</h4>
+
+        <div class="row-line">
+          <span>Chassis Number</span>
+          <strong id="panelChassis">—</strong>
+        </div>
+
+        <div class="row-line">
+          <span>Engine Number</span>
+          <strong id="panelEngine">—</strong>
+        </div>
+
+        <div class="row-line">
+          <span>Color</span>
+          <strong id="panelColor">—</strong>
+        </div>
+
+      </div>
+
+      <div class="panel-card">
+
+        <h4>Ownership</h4>
+
+        <div class="row-line">
+          <span>Ownership Type</span>
+          <strong id="panelOwnership">—</strong>
+        </div>
+
+        <div class="row-line">
+          <span>Owner Name</span>
+          <strong id="panelOwnerName">—</strong>
+        </div>
+
+        <div class="row-line">
+          <span>Owner Phone</span>
+          <strong id="panelOwnerPhone">—</strong>
+        </div>
+
+      </div>
+
+      <div class="panel-card">
+
+        <h4>Financial Information</h4>
+
+        <div class="row-line">
+          <span>Purchase Cost</span>
+          <strong id="panelPurchaseCost">—</strong>
+        </div>
+
+        <div class="row-line">
+          <span>Current Book Value</span>
+          <strong id="panelBookValue">—</strong>
+        </div>
+
+        <div class="row-line">
+          <span>Status</span>
+          <strong id="panelVehicleStatus">—</strong>
+        </div>
+
+      </div>
+
+      <div class="panel-card">
+
+        <h4>Notes</h4>
+
+        <p id="panelVehicleNotes">
+          No notes added.
+        </p>
+
+      </div>
+
+      <button
+        type="button"
+        class="primary-btn full-btn"
+        id="viewDepreciationBtn"
+        onclick="openDepreciationModal()"
+      >
+        View Depreciation
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- CREATE / EDIT MODAL -->
+<div
+  class="vehicle-modal-overlay hidden"
+  id="vehicleModal"
+>
+
+  <div class="vehicle-modal">
+
+    <div class="modal-header">
+
+      <h2 id="vehicleModalTitle">
+        Add Vehicle
+      </h2>
+
+      <button
+        type="button"
+        class="close-btn"
+        onclick="closeVehicleModal()"
+      >
+        ✖
+      </button>
+
+    </div>
+
+    <form
+      method="POST"
+      id="vehicleForm"
+      action="{% url 'vehicles:vehicle_create' %}"
+      data-create-url="{% url 'vehicles:vehicle_create' %}"
+    >
+
+      {% csrf_token %}
+
+      <div class="modal-grid">
+
+        <div class="form-section">
+
+          <h3>Vehicle Information</h3>
+
+          <div class="form-row">
+
+            <div>
+              <label>Registration Number *</label>
+              <input
+                type="text"
+                name="registration_number"
+                id="registrationInput"
+                required
+              >
+            </div>
+
+            <div>
+              <label>Vehicle Type *</label>
+
+              <select
+                name="vehicle_type"
+                id="vehicleTypeInput"
+                required
+              >
+                <option value="truck">Truck</option>
+                <option value="trailer">Trailer</option>
+                <option value="mazda">Mazda</option>
+                <option value="pickup">Pickup</option>
+                <option value="dumper">Dumper</option>
+                <option value="tanker">Tanker</option>
+                <option value="other">Other</option>
+              </select>
+
+            </div>
+
+          </div>
+
+          <div class="form-row">
+
+            <div>
+              <label>Body Type *</label>
+
+              <select
+                name="body_type"
+                id="bodyTypeInput"
+                required
+              >
+                <option value="open">Open Body</option>
+                <option value="container">Container</option>
+                <option value="flatbed">Flatbed</option>
+                <option value="tanker">Tanker</option>
+                <option value="dumper">Dumper</option>
+                <option value="refrigerated">Refrigerated</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            <div>
+              <label>Capacity (Tons)</label>
+              <input
+                type="number"
+                name="capacity_tons"
+                id="capacityInput"
+                min="0.01"
+                step="0.01"
+              >
+            </div>
+
+          </div>
+
+          <div class="form-row">
+
+            <div>
+              <label>Make</label>
+              <input
+                type="text"
+                name="make"
+                id="makeInput"
+              >
+            </div>
+
+            <div>
+              <label>Model</label>
+              <input
+                type="text"
+                name="model"
+                id="modelInput"
+              >
+            </div>
+
+          </div>
+
+          <div class="form-row">
+
+            <div>
+              <label>Model Year</label>
+              <input
+                type="number"
+                name="model_year"
+                id="modelYearInput"
+                min="1950"
+              >
+            </div>
+
+            <div>
+              <label>Color</label>
+              <input
+                type="text"
+                name="color"
+                id="colorInput"
+              >
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="form-section">
+
+          <h3>Technical Information</h3>
+
+          <div>
+            <label>Chassis Number</label>
+            <input
+              type="text"
+              name="chassis_number"
+              id="chassisInput"
+            >
+          </div>
+
+          <div>
+            <label>Engine Number</label>
+            <input
+              type="text"
+              name="engine_number"
+              id="engineInput"
+            >
+          </div>
+
+          <div>
+            <label>Ownership Type *</label>
+
+            <select
+              name="ownership_type"
+              id="ownershipTypeInput"
+              required
+            >
+              <option value="company_owned">
+                Company Owned
+              </option>
+
+              <option value="attached">
+                Attached Vehicle
+              </option>
+
+              <option value="market_hired">
+                Market / Hired Vehicle
+              </option>
+            </select>
+
+          </div>
+
+          <div id="ownerFields">
+
+            <div class="form-row">
+
+              <div>
+                <label>Owner Name *</label>
+                <input
+                  type="text"
+                  name="owner_name"
+                  id="ownerNameInput"
+                >
+              </div>
+
+              <div>
+                <label>Owner Phone</label>
+                <input
+                  type="text"
+                  name="owner_phone"
+                  id="ownerPhoneInput"
+                >
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div
+          class="form-section"
+          id="depreciationFields"
+        >
+
+          <h3>Purchase & Depreciation</h3>
+
+          <div class="form-row">
+
+            <div>
+              <label>Purchase Date *</label>
+              <input
+                type="date"
+                name="purchase_date"
+                id="purchaseDateInput"
+              >
+            </div>
+
+            <div>
+              <label>Purchase Cost *</label>
+              <input
+                type="number"
+                name="purchase_cost"
+                id="purchaseCostInput"
+                min="0.01"
+                step="0.01"
+              >
+            </div>
+
+          </div>
+
+          <div class="form-row">
+
+            <div>
+              <label>In-Service Date *</label>
+              <input
+                type="date"
+                name="depreciation_start_date"
+                id="depreciationStartInput"
+              >
+            </div>
+
+            <div>
+              <label>Expected Resale Value</label>
+              <input
+                type="number"
+                name="residual_value"
+                id="residualValueInput"
+                min="0"
+                step="0.01"
+                value="0"
+              >
+            </div>
+
+          </div>
+
+          <div>
+            <label>Useful Life (Years) *</label>
+
+            <input
+              type="number"
+              name="useful_life_years"
+              id="usefulLifeInput"
+              min="1"
+              max="30"
+              value="10"
+            >
+          </div>
+
+          <p class="form-hint">
+            Straight-line depreciation automatically calculate hogi.
+          </p>
+
+        </div>
+
+
+        <div class="form-section">
+
+          <h3>Status & Disposal</h3>
+
+          <div>
+            <label>Status *</label>
+
+            <select
+              name="status"
+              id="vehicleStatusInput"
+              required
+            >
+              <option value="available">Available</option>
+              <option value="on_trip">On Trip</option>
+              <option value="maintenance">Under Maintenance</option>
+              <option value="inactive">Inactive</option>
+              <option value="sold">Sold</option>
+            </select>
+
+          </div>
+
+          <div
+            id="disposalFields"
+            class="hidden"
+          >
+
+            <div class="form-row">
+
+              <div>
+                <label>Sale Date *</label>
+                <input
+                  type="date"
+                  name="disposal_date"
+                  id="disposalDateInput"
+                >
+              </div>
+
+              <div>
+                <label>Sale Amount *</label>
+                <input
+                  type="number"
+                  name="disposal_amount"
+                  id="disposalAmountInput"
+                  min="0"
+                  step="0.01"
+                >
+              </div>
+
+            </div>
+
+          </div>
+
+          <div>
+            <label>Notes</label>
+
+            <textarea
+              name="notes"
+              id="vehicleNotesInput"
+            ></textarea>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="modal-actions">
+
+        <button
+          type="button"
+          class="secondary-btn"
+          onclick="closeVehicleModal()"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="submit"
+          class="primary-btn"
+          id="vehicleSubmitBtn"
+        >
+          Save Vehicle
+        </button>
+
+      </div>
+
+    </form>
+
+  </div>
+
+</div>
+
+
+<!-- DEPRECIATION MODAL -->
+<div
+  class="depreciation-overlay hidden"
+  id="depreciationModal"
+>
+
+  <div class="depreciation-modal">
+
+    <div class="modal-header">
+
+      <div>
+        <h2>Vehicle Depreciation</h2>
+        <p id="depreciationVehicleTitle">—</p>
+      </div>
+
+      <button
+        type="button"
+        class="close-btn"
+        onclick="closeDepreciationModal()"
+      >
+        ✖
+      </button>
+
+    </div>
+
+    <div
+      id="depreciationNotApplicable"
+      class="depreciation-warning hidden"
+    ></div>
+
+    <div id="depreciationContent">
+
+      <div class="depreciation-summary">
+
+        <div>
+          <span>Purchase Cost</span>
+          <strong id="depPurchaseCost">PKR 0</strong>
+        </div>
+
+        <div>
+          <span>Current Book Value</span>
+          <strong id="depBookValue">PKR 0</strong>
+        </div>
+
+        <div>
+          <span>Accumulated Depreciation</span>
+          <strong id="depAccumulated">PKR 0</strong>
+        </div>
+
+      </div>
+
+      <div class="depreciation-progress">
+
+        <div class="progress-header">
+          <span>Depreciation Progress</span>
+          <strong id="depPercent">0%</strong>
+        </div>
+
+        <div class="progress-track">
+          <div
+            class="progress-fill"
+            id="depProgressFill"
+          ></div>
+        </div>
+
+      </div>
+
+      <div class="depreciation-details">
+
+        <div class="row-line">
+          <span>Expected Resale Value</span>
+          <strong id="depResidual">PKR 0</strong>
+        </div>
+
+        <div class="row-line">
+          <span>Depreciable Amount</span>
+          <strong id="depDepreciable">PKR 0</strong>
+        </div>
+
+        <div class="row-line">
+          <span>Useful Life</span>
+          <strong id="depUsefulLife">—</strong>
+        </div>
+
+        <div class="row-line">
+          <span>Annual Depreciation</span>
+          <strong id="depAnnual">PKR 0</strong>
+        </div>
+
+        <div class="row-line">
+          <span>Monthly Depreciation</span>
+          <strong id="depMonthly">PKR 0</strong>
+        </div>
+
+        <div class="row-line">
+          <span>Elapsed Months</span>
+          <strong id="depElapsed">—</strong>
+        </div>
+
+        <div class="row-line">
+          <span>Remaining Months</span>
+          <strong id="depRemaining">—</strong>
+        </div>
+
+        <div class="row-line">
+          <span>Calculated As Of</span>
+          <strong id="depAsOf">—</strong>
+        </div>
+
+      </div>
+
+      <div
+        class="tax-reference"
+      >
+        Tax reference: Motor vehicle depreciation may be handled separately
+        under applicable tax rules. Ye modal internal book depreciation show karta hai.
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- DELETE CONFIRMATION -->
+<div
+  class="custom-confirm-overlay hidden"
+  id="vehicleDeleteConfirmModal"
+>
+
+  <div class="custom-confirm-box">
+
+    <div class="confirm-icon">!</div>
+
+    <h3>Delete Vehicle?</h3>
+
+    <p>
+      Are you sure you want to delete
+      <strong id="deleteVehicleName">
+        this vehicle
+      </strong>?
+    </p>
+
+    <p class="confirm-note">
+      Linked vehicle permanently delete nahi hoga;
+      system usay inactive mark karega.
+    </p>
+
+    <div class="confirm-actions">
+
+      <button
+        type="button"
+        class="secondary-btn"
+        onclick="closeVehicleDeleteConfirm(event)"
+      >
+        Cancel
+      </button>
+
+      <button
+        type="button"
+        class="danger-btn"
+        onclick="confirmVehicleDelete(event)"
+      >
+        Yes, Delete
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock content %}
+
+{% block extra_js %}
+<script src="{% static 'js/vehicles.js' %}"></script>
+{% endblock extra_js %}
