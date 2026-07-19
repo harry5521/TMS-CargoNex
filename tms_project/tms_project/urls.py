@@ -27,4 +27,5 @@ urlpatterns = [
     path('tms/payments/', include('payments.urls')),
     path("tms/drivers/", include("drivers.urls")),
     path("tms/vehicles/", include("vehicles.urls")),
+    path("tms/trips/", include("trips.urls")),
 ]

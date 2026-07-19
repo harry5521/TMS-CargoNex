@@ -3,6 +3,7 @@ from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.db.models.deletion import ProtectedError
 from django.shortcuts import redirect
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 from django.views.generic import ListView
 
@@ -29,7 +30,7 @@ def add_form_errors_to_messages(request, form):
             )
 
 
-class DriverListView(ListView):
+class DriverListView(LoginRequiredMixin, ListView):
     model = Driver
     template_name = "drivers/drivers.html"
     context_object_name = "drivers"
@@ -60,7 +61,7 @@ class DriverListView(ListView):
         return queryset
 
 
-class DriverCreateView(View):
+class DriverCreateView(LoginRequiredMixin, View):
 
     def post(self, request):
 
@@ -95,7 +96,7 @@ class DriverCreateView(View):
         return redirect("drivers:drivers_view")
 
 
-class DriverUpdateView(View):
+class DriverUpdateView(LoginRequiredMixin, View):
 
     def post(self, request, pk):
 
@@ -143,7 +144,7 @@ class DriverUpdateView(View):
         return redirect("drivers:drivers_view")
 
 
-class DriverDeleteView(View):
+class DriverDeleteView(LoginRequiredMixin, View):
 
     def post(self, request, pk):
 

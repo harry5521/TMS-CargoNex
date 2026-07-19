@@ -6,9 +6,10 @@ from django.views import View
 from django.views.generic import ListView
 from .models import Transaction, TransactionCategory
 from decimal import Decimal
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 
-class AccountsView(ListView):
+class AccountsView(LoginRequiredMixin, ListView):
 
     model = Transaction
     template_name = 'accounts/accounts.html'
@@ -34,6 +35,7 @@ class AccountsView(ListView):
         if search:
             queryset = queryset.filter(
                 Q(transaction_id__icontains=search) |
+                Q(title__icontains=search) |
                 Q(remarks__icontains=search) |
                 Q(category__name__icontains=search) |
                 Q(customer__company_name__icontains=search) |
@@ -100,7 +102,7 @@ class AccountsView(ListView):
         return context
     
 
-class TransactionCategorySaveView(View):
+class TransactionCategorySaveView(LoginRequiredMixin, View):
 
     def post(self, request):
         category_id = request.POST.get("category_id")
@@ -127,18 +129,8 @@ class TransactionCategorySaveView(View):
         return JsonResponse({"success": True})
 
 
-from decimal import Decimal
-from django.contrib import messages
-from django.shortcuts import redirect
-from django.views import View
 
-from .models import (
-    Transaction,
-    TransactionCategory
-)
-
-
-class TransactionCreateView(View):
+class TransactionCreateView(LoginRequiredMixin, View):
 
     def post(self, request):
 
@@ -213,7 +205,7 @@ class TransactionCreateView(View):
 
 # General Expenses View
 
-class GeneralExpensesView(ListView):
+class GeneralExpensesView(LoginRequiredMixin, ListView):
     model = Transaction
     template_name = 'accounts/expenses.html'
     context_object_name = 'general_expenses'

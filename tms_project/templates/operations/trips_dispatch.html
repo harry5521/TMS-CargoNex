@@ -1,0 +1,451 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/trips.css' %}">
+{% endblock extra_css %}
+
+{% block content %}
+{% include "partials/alerts.html" %}
+
+<div class="content">
+  <div
+    class="trips-page"
+    id="tripsPage"
+    data-unassigned-search-url="{% url 'trips:unassigned_builty_search' %}"
+    data-open-expenses-id="{{ open_expenses_trip_id }}"
+  >
+
+    <div class="page-header">
+      <div>
+        <h2>Trips & Dispatch</h2>
+        <p>Dispatch planning, live trips and trip-level expenses.</p>
+      </div>
+
+      <div class="header-actions">
+        <button
+          type="button"
+          class="secondary-action-btn"
+          onclick="openCurrentTripsModal()"
+        >
+          Current Trips
+          <span class="count-pill">{{ current_trip_count }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="primary-btn"
+          onclick="openAssignTripModal()"
+        >
+          + Assign Trip
+        </button>
+      </div>
+    </div>
+
+    <div class="trip-cards">
+      <div class="summary-card">
+        <span>Total Trips</span>
+        <strong>{{ stats.total|default:0 }}</strong>
+      </div>
+      <div class="summary-card pending-card">
+        <span>Pending</span>
+        <strong>{{ stats.pending|default:0 }}</strong>
+      </div>
+      <div class="summary-card transit-card">
+        <span>In Transit</span>
+        <strong>{{ stats.in_transit|default:0 }}</strong>
+      </div>
+      <div class="summary-card completed-card">
+        <span>Completed</span>
+        <strong>{{ stats.completed|default:0 }}</strong>
+      </div>
+      <div class="summary-card expense-card">
+        <span>Total Trip Expenses</span>
+        <strong>PKR {{ stats.total_expenses|default:0|floatformat:2 }}</strong>
+      </div>
+    </div>
+
+    <form method="GET" class="trip-filter-bar">
+      <input
+        type="text"
+        name="search"
+        value="{{ request.GET.search }}"
+        placeholder="Search trip, Builty, customer, driver or vehicle..."
+      >
+
+      <select name="status">
+        <option value="">All Statuses</option>
+        <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+        <option value="in_transit" {% if request.GET.status == 'in_transit' %}selected{% endif %}>In Transit</option>
+        <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
+        <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+      </select>
+
+      <input type="date" name="date_from" value="{{ request.GET.date_from }}">
+      <input type="date" name="date_to" value="{{ request.GET.date_to }}">
+
+      <button type="submit" class="primary-btn">Search</button>
+      <a href="{% url 'trips:trip_list' %}" class="clear-filter-btn">Clear</a>
+    </form>
+
+    <div class="trips-layout">
+      <div class="trips-left">
+        <div class="table-section">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Trip</th>
+                  <th>Builty</th>
+                  <th>Customer</th>
+                  <th>Route</th>
+                  <th>Vehicle</th>
+                  <th>Driver</th>
+                  <th>Expenses</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {% for trip in trips %}
+                <tr
+                  class="trip-row"
+                  data-trip-id="{{ trip.pk }}"
+                  data-detail-url="{% url 'trips:trip_detail' trip.pk %}"
+                >
+                  <td class="link">{{ trip.trip_no }}</td>
+                  <td>{{ trip.builty.builty_no }}</td>
+                  <td>{{ trip.builty.customer.company_name }}</td>
+                  <td>{{ trip.builty.route }}</td>
+                  <td>{{ trip.vehicle.registration_number }}</td>
+                  <td>{{ trip.driver.full_name }}</td>
+                  <td>PKR {{ trip.expense_total|floatformat:2 }}</td>
+                  <td>
+                    <span class="trip-status {{ trip.status }}">
+                      {{ trip.get_status_display }}
+                    </span>
+                  </td>
+                  <td>{{ trip.scheduled_date|date:"d M Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="9" class="empty-row">No trips found.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {% if is_paginated %}
+        <div class="pagination">
+          {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}&search={{ request.GET.search }}&status={{ request.GET.status }}&date_from={{ request.GET.date_from }}&date_to={{ request.GET.date_to }}">Previous</a>
+          {% endif %}
+
+          <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+          {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}&search={{ request.GET.search }}&status={{ request.GET.status }}&date_from={{ request.GET.date_from }}&date_to={{ request.GET.date_to }}">Next</a>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+
+      <aside class="trip-right hidden" id="tripPanel">
+        <div class="panel-header">
+          <div>
+            <h3 id="panelTripTitle">Trip Details</h3>
+            <span id="panelTripBuilty">—</span>
+          </div>
+          <button type="button" class="close-btn" onclick="closeTripPanel()">✖</button>
+        </div>
+
+        <div class="panel-card">
+          <h4>Dispatch</h4>
+          <div class="row-line"><span>Status</span><strong id="panelTripStatus">—</strong></div>
+          <div class="row-line"><span>Scheduled</span><strong id="panelScheduledDate">—</strong></div>
+          <div class="row-line"><span>Started</span><strong id="panelStartedAt">—</strong></div>
+          <div class="row-line"><span>Completed</span><strong id="panelCompletedAt">—</strong></div>
+        </div>
+
+        <div class="panel-card">
+          <h4>Route & Customer</h4>
+          <div class="row-line"><span>Customer</span><strong id="panelCustomer">—</strong></div>
+          <div class="row-line"><span>Route</span><strong id="panelRoute">—</strong></div>
+          <div class="row-line"><span>Receiver</span><strong id="panelReceiver">—</strong></div>
+        </div>
+
+        <div class="panel-card">
+          <h4>Assignment</h4>
+          <div class="row-line"><span>Vehicle</span><strong id="panelVehicle">—</strong></div>
+          <div class="row-line"><span>Driver</span><strong id="panelDriver">—</strong></div>
+          <div class="row-line"><span>Driver Phone</span><strong id="panelDriverPhone">—</strong></div>
+        </div>
+
+        <div class="panel-card highlight-card">
+          <h4>Financial</h4>
+          <div class="row-line"><span>Freight</span><strong id="panelFreight">—</strong></div>
+          <div class="row-line"><span>Outstanding</span><strong id="panelOutstanding">—</strong></div>
+          <div class="row-line"><span>Trip Expenses</span><strong id="panelExpenses">—</strong></div>
+        </div>
+
+        <div class="panel-actions">
+          <button
+            type="button"
+            class="secondary-action-btn"
+            id="panelViewDetailsBtn"
+          >
+            View Builty Details
+          </button>
+
+          <button
+            type="button"
+            class="expense-btn"
+            id="panelManageExpensesBtn"
+          >
+            Manage Expenses
+          </button>
+        </div>
+
+        <form method="POST" class="panel-status-form hidden" id="panelStartForm">
+          {% csrf_token %}
+          <button type="submit" class="start-btn">Start Trip</button>
+        </form>
+
+        <form method="POST" class="panel-status-form hidden" id="panelCompleteForm">
+          {% csrf_token %}
+          <button type="submit" class="complete-btn">Complete Trip</button>
+        </form>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<!-- CURRENT TRIPS MODAL -->
+<div class="trip-modal-overlay hidden" id="currentTripsModal">
+  <div class="trip-modal current-trips-modal">
+    <div class="modal-header">
+      <div>
+        <h2>Current Pending Trips</h2>
+        <p>Maximum 10 oldest pending trips are shown.</p>
+      </div>
+      <button type="button" class="close-btn" onclick="closeCurrentTripsModal()">✖</button>
+    </div>
+
+    <div class="current-trip-list">
+      {% for trip in current_trips %}
+      <div class="current-trip-item">
+        <div class="current-trip-main">
+          <strong>{{ trip.trip_no }}</strong>
+          <span>{{ trip.builty.builty_no }} • {{ trip.builty.customer.company_name }}</span>
+          <small>{{ trip.builty.route }}</small>
+        </div>
+
+        <div class="current-trip-assignment">
+          <span>{{ trip.vehicle.registration_number }}</span>
+          <span>{{ trip.driver.full_name }}</span>
+        </div>
+
+        <div class="current-trip-actions">
+          <button
+            type="button"
+            class="details-btn"
+            onclick="openTripDetailsModal('{% url 'trips:trip_detail' trip.pk %}')"
+          >
+            View Details
+          </button>
+
+          <form method="POST" action="{% url 'trips:trip_start' trip.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="start-btn">Start</button>
+          </form>
+        </div>
+      </div>
+      {% empty %}
+      <div class="empty-modal-state">No pending trips available.</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- ASSIGN TRIP MODAL -->
+<div class="trip-modal-overlay hidden" id="assignTripModal">
+  <div class="trip-modal assign-trip-modal">
+    <div class="modal-header">
+      <div>
+        <h2>Assign Trip</h2>
+        <p>Use this for finalized Builties that do not yet have a Trip.</p>
+      </div>
+      <button type="button" class="close-btn" onclick="closeAssignTripModal()">✖</button>
+    </div>
+
+    <form method="POST" action="{% url 'trips:trip_assign' %}" id="assignTripForm">
+      {% csrf_token %}
+      <input type="hidden" name="builty_id" id="assignBuiltyId">
+
+      <label>Search Finalized Builty</label>
+
+      <div class="searchable-field">
+        <input
+          type="text"
+          id="assignBuiltySearch"
+          placeholder="Search Builty no, customer, route, driver or vehicle..."
+          autocomplete="off"
+        >
+      </div>
+
+      <!-- FIXED RESULT AREA -->
+      <div
+        class="assign-results-box"
+        id="assignResultsBox"
+      >
+        <div
+          class="assign-results-placeholder"
+          id="assignResultsPlaceholder"
+        >
+          Search for a finalized Builty. Results will appear here.
+        </div>
+
+        <div
+          class="search-suggestions hidden"
+          id="assignBuiltySuggestions"
+        ></div>
+      </div>
+
+      <div class="selected-builty-card hidden" id="selectedBuiltyCard">
+        <strong id="selectedBuiltyNo">—</strong>
+        <span id="selectedBuiltyCustomer">—</span>
+        <span id="selectedBuiltyRoute">—</span>
+        <small id="selectedBuiltyAssignment">—</small>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="secondary-action-btn" onclick="closeAssignTripModal()">Cancel</button>
+        <button type="submit" class="primary-btn">Assign Trip</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- TRIP / BUILTY DETAILS MODAL -->
+<div class="trip-modal-overlay hidden" id="tripDetailsModal">
+  <div class="trip-modal details-modal">
+    <div class="modal-header">
+      <div>
+        <h2 id="detailsTripTitle">Trip Details</h2>
+        <p id="detailsBuiltyTitle">—</p>
+      </div>
+      <button type="button" class="close-btn" onclick="closeTripDetailsModal()">✖</button>
+    </div>
+
+    <div class="details-grid">
+      <section class="details-section">
+        <h3>Customer & Receiver</h3>
+        <div class="row-line"><span>Customer</span><strong id="detailCustomer">—</strong></div>
+        <div class="row-line"><span>Customer Phone</span><strong id="detailCustomerPhone">—</strong></div>
+        <div class="row-line"><span>Receiver</span><strong id="detailReceiver">—</strong></div>
+        <div class="row-line"><span>Receiver Phone</span><strong id="detailReceiverPhone">—</strong></div>
+      </section>
+
+      <section class="details-section">
+        <h3>Shipment</h3>
+        <div class="row-line"><span>Route</span><strong id="detailRoute">—</strong></div>
+        <div class="row-line"><span>Goods</span><strong id="detailGoods">—</strong></div>
+        <div class="row-line"><span>Weight</span><strong id="detailWeight">—</strong></div>
+        <div class="row-line"><span>Packages</span><strong id="detailPackages">—</strong></div>
+      </section>
+
+      <section class="details-section">
+        <h3>Driver & Vehicle</h3>
+        <div class="row-line"><span>Vehicle</span><strong id="detailVehicle">—</strong></div>
+        <div class="row-line"><span>Driver</span><strong id="detailDriver">—</strong></div>
+        <div class="row-line"><span>Driver Phone</span><strong id="detailDriverPhone">—</strong></div>
+        <div class="row-line"><span>Licence</span><strong id="detailDriverLicense">—</strong></div>
+      </section>
+
+      <section class="details-section financial-section">
+        <h3>Financial</h3>
+        <div class="row-line"><span>Freight</span><strong id="detailFreight">—</strong></div>
+        <div class="row-line"><span>Advance</span><strong id="detailAdvance">—</strong></div>
+        <div class="row-line"><span>Remaining</span><strong id="detailRemaining">—</strong></div>
+        <div class="row-line"><span>Payment</span><strong id="detailPaymentStatus">—</strong></div>
+      </section>
+    </div>
+
+    <section class="details-section notes-section">
+      <h3>Notes</h3>
+      <p id="detailNotes">—</p>
+    </section>
+  </div>
+</div>
+
+<!-- MANAGE EXPENSES MODAL -->
+<div class="trip-modal-overlay hidden" id="expenseModal">
+  <div class="trip-modal expense-modal">
+    <div class="modal-header">
+      <div>
+        <h2>Manage Trip Expenses</h2>
+        <p id="expenseTripTitle">—</p>
+      </div>
+      <button type="button" class="close-btn" onclick="closeExpenseModal()">✖</button>
+    </div>
+
+    <div class="expense-layout">
+      <form method="POST" id="expenseCreateForm" class="expense-create-form">
+        {% csrf_token %}
+        <h3>Add Expense</h3>
+
+        <label>Expense Title *</label>
+        <input type="text" name="title" required placeholder="Fuel, toll, repair, loading...">
+
+        <div class="form-row">
+          <div>
+            <label>Amount *</label>
+            <input type="number" name="amount" min="0.01" step="0.01" required>
+          </div>
+          <div>
+            <label>Expense Date *</label>
+            <input type="date" name="expense_date" id="expenseDateInput" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label>Payment Mode *</label>
+            <select name="payment_mode" id="expensePaymentMode" required>
+              <option value="cash">Cash</option>
+              <option value="bank">Bank Transfer</option>
+              <option value="online">Online Transfer</option>
+              <option value="cheque">Cheque</option>
+            </select>
+          </div>
+          <div>
+            <label>Reference No</label>
+            <input type="text" name="reference_no" id="expenseReferenceNo">
+          </div>
+        </div>
+
+        <label>Remarks</label>
+        <textarea name="remarks" placeholder="Optional details..."></textarea>
+
+        <button type="submit" class="expense-btn full-width-btn">Record Expense</button>
+      </form>
+
+      <div class="expense-list-panel">
+        <div class="expense-list-header">
+          <h3>Recorded Expenses</h3>
+          <strong id="expenseTotal">PKR 0.00</strong>
+        </div>
+        <div class="expense-list" id="expenseList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}
+
+{% block extra_js %}
+<script src="{% static 'js/trips.js' %}"></script>
+{% endblock extra_js %}

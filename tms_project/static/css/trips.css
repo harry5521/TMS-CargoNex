@@ -1,0 +1,700 @@
+.trips-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.page-header p {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.header-actions,
+.modal-actions,
+.panel-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.primary-btn,
+.secondary-action-btn,
+.expense-btn,
+.start-btn,
+.complete-btn,
+.details-btn,
+.clear-filter-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.primary-btn,
+.start-btn {
+  background: #2563eb;
+  color: #fff;
+}
+
+.secondary-action-btn,
+.details-btn,
+.clear-filter-btn {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.expense-btn {
+  background: #7c3aed;
+  color: #fff;
+}
+
+.complete-btn {
+  background: #15803d;
+  color: #fff;
+}
+
+.count-pill {
+  display: inline-flex;
+  min-width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  border-radius: 999px;
+  background: #fff;
+  color: #2563eb;
+  font-size: 12px;
+}
+
+.trip-cards {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.summary-card {
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.summary-card span {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.summary-card strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 22px;
+}
+
+.pending-card { border-left: 4px solid #d97706; }
+.transit-card { border-left: 4px solid #2563eb; }
+.completed-card { border-left: 4px solid #16a34a; }
+.expense-card { border-left: 4px solid #7c3aed; }
+
+.trip-filter-bar {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) 160px 150px 150px auto auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.trip-filter-bar input,
+.trip-filter-bar select,
+.searchable-field input,
+.expense-create-form input,
+.expense-create-form select,
+.expense-create-form textarea,
+.expense-title-form input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  outline: none;
+}
+
+.trips-layout {
+  display: block;
+  width: 100%;
+}
+
+/*
+Right panel ab page layout ko shrink nahi karega.
+Ye page ke upar overlay hoga.
+*/
+.trips-layout.panel-open {
+  display: block;
+}
+
+.table-section {
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.table-wrapper table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-wrapper th,
+.table-wrapper td {
+  padding: 13px 14px;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.table-wrapper thead {
+  background: #f8fafc;
+}
+
+.trip-row {
+  cursor: pointer;
+  transition: background .18s ease;
+}
+
+.trip-row:hover {
+  background: #f8fafc;
+}
+
+.link {
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.trip-status {
+  display: inline-flex;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.trip-status.pending { background: #fef3c7; color: #92400e; }
+.trip-status.in_transit { background: #dbeafe; color: #1d4ed8; }
+.trip-status.completed { background: #dcfce7; color: #166534; }
+.trip-status.cancelled { background: #fee2e2; color: #991b1b; }
+
+.empty-row,
+.empty-modal-state {
+  padding: 28px;
+  text-align: center;
+  color: #64748b;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.trip-right {
+  position: fixed;
+
+  /*
+  Navbar ke neeche se start hoga,
+  table ke side se nahi.
+  */
+  top: 82px;
+  right: 20px;
+  bottom: 18px;
+
+  width: min(390px, calc(100vw - 40px));
+  max-height: none;
+
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  padding: 18px;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+
+  background: #fff;
+
+  box-shadow:
+    0 20px 50px rgba(15, 23, 42, 0.18);
+
+  z-index: 3500;
+
+  opacity: 0;
+  transform: translateX(35px);
+
+  transition:
+    opacity .26s ease,
+    transform .26s ease;
+}
+
+.trip-right.active {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.panel-header,
+.modal-header,
+.expense-list-header,
+.expense-item-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.panel-header span,
+.modal-header p {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.close-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.panel-card,
+.details-section {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.panel-card h4,
+.details-section h3,
+.expense-create-form h3,
+.expense-list-panel h3 {
+  margin-bottom: 10px;
+}
+
+.highlight-card,
+.financial-section {
+  background: #eef6ff;
+  border-color: #bfdbfe;
+}
+
+.row-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 7px 0;
+  font-size: 13px;
+}
+
+.row-line span {
+  color: #64748b;
+}
+
+.row-line strong {
+  text-align: right;
+  word-break: break-word;
+}
+
+.panel-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 14px;
+}
+
+.panel-status-form {
+  margin-top: 10px;
+}
+
+.panel-status-form button {
+  width: 100%;
+}
+
+.trip-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, .52);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity .22s ease, visibility .22s ease;
+}
+
+.trip-modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.trip-modal {
+  width: min(900px, 95vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 22px;
+  border-radius: 14px;
+  background: #fff;
+  opacity: 0;
+  transform: translateY(14px) scale(.98);
+  transition: opacity .22s ease, transform .22s ease;
+}
+
+.trip-modal-overlay.active .trip-modal {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.current-trips-modal {
+  width: min(920px, 95vw);
+}
+
+.current-trip-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+  max-height: 65vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.current-trip-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(180px, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.current-trip-main,
+.current-trip-assignment {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.current-trip-main span,
+.current-trip-main small,
+.current-trip-assignment span {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.current-trip-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.assign-trip-modal {
+  width: min(620px, 95vw);
+}
+
+.assign-trip-modal form {
+  margin-top: 18px;
+}
+
+.assign-trip-modal label,
+.expense-create-form label {
+  display: block;
+  margin: 10px 0 6px;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.searchable-field {
+  width: 100%;
+}
+
+/*
+Modal ki fixed empty/results area.
+Iski height search results ke saath change nahi hogi.
+*/
+.assign-results-box {
+  position: relative;
+
+  width: 100%;
+  height: 230px;
+
+  margin-top: 12px;
+
+  overflow: hidden;
+
+  border: 1px solid #dbe3ee;
+  border-radius: 12px;
+
+  background: #f8fafc;
+}
+
+.assign-results-placeholder {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  color: #64748b;
+  font-size: 13px;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.search-suggestions {
+  width: 100%;
+  height: 100%;
+
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  background: #fff;
+
+  scrollbar-width: thin;
+}
+
+.search-suggestions .suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.search-suggestions::-webkit-scrollbar,
+.trip-right::-webkit-scrollbar {
+  width: 7px;
+}
+
+.search-suggestions::-webkit-scrollbar-thumb,
+.trip-right::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.search-suggestions::-webkit-scrollbar-track,
+.trip-right::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.suggestion-item {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 3px;
+  padding: 11px 12px;
+  border: none;
+  border-bottom: 1px solid #e2e8f0;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.suggestion-item:hover {
+  background: #f8fafc;
+}
+
+.suggestion-item span,
+.suggestion-item small,
+.suggestion-empty {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.suggestion-empty {
+  padding: 14px;
+}
+
+.selected-builty-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  background: #eff6ff;
+}
+
+.selected-builty-card span,
+.selected-builty-card small {
+  color: #475569;
+  font-size: 13px;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.notes-section p {
+  color: #475569;
+  line-height: 1.6;
+}
+
+.expense-modal {
+  width: min(1100px, 96vw);
+}
+
+.expense-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, .8fr) minmax(0, 1.2fr);
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.expense-create-form,
+.expense-list-panel {
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.expense-create-form textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.full-width-btn {
+  width: 100%;
+  margin-top: 14px;
+}
+
+.expense-list {
+  display: flex;
+  max-height: 55vh;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  margin-top: 12px;
+}
+
+.expense-item {
+  padding: 13px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.expense-item-top > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.expense-item-top span,
+.expense-item-meta span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.expense-item-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.edit-title-toggle {
+  margin-top: 10px;
+  border: none;
+  background: transparent;
+  color: #2563eb;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.expense-title-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.expense-title-form button {
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #fff;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none !important;
+}
+
+@media (max-width: 1100px) {
+  .trip-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .trip-filter-bar {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+@media (max-width: 850px) {
+  .page-header,
+  .header-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .trips-layout.panel-open,
+  .details-grid,
+  .expense-layout,
+  .current-trip-item,
+  .form-row,
+  .panel-actions,
+  .trip-filter-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .trip-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .trip-right {
+    top: 72px;
+    right: 10px;
+    bottom: 10px;
+
+    width: calc(100vw - 20px);
+  }
+
+  .assign-results-box {
+    height: 210px;
+  }
+}

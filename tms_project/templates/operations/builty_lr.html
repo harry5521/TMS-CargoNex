@@ -5,389 +5,591 @@
 <link rel="stylesheet" href="{% static 'css/builty.css' %}">
 {% endblock extra_css %}
 
-
 {% block content %}
 
 {% include "partials/alerts.html" %}
 
-<div class="content">
+<div class="content builty-page">
 
-    <div class="builty-layout">
+  <div class="builty-layout">
 
-        <!-- LEFT -->
-        <div class="builty-left">
+    <!-- LEFT SIDE -->
+    <div class="builty-left">
 
-            <div class="page-header">
-                <h2>Builty Management</h2>
-                <a class="primary-btn" href="{% url 'builty:builty_create' %}">
-                    + Create Builty
-                </a>
-            </div>
-
-            <div class="cards">
-                <div class="card">
-                    <p>Total Builty</p>
-                    <h3>1,284</h3>
-                </div>
-                <div class="card">
-                    <p>Pending Dispatch</p>
-                    <h3>42</h3>
-                </div>
-                <div class="card">
-                    <p>In Transit</p>
-                    <h3>156</h3>
-                </div>
-                <div class="card">
-                    <p>Completed Today</p>
-                    <h3>18</h3>
-                </div>
-            </div>
-
-            <form method="GET" class="filter-bar">
-
-              <!-- SEARCH -->
-                <input type="text" name="q" placeholder="Search ID, customer..." value="{{ request.GET.q }}">
-              
-
-              <!-- FILTER SELECT -->
-              <select style="width: 110px;" name="filter" id="filterSelect" onchange="handleFilterChange()">
-                <option value="">All</option>
-                <option value="today" selected>Today</option>
-                <option value="yesterday">Yesterday</option>
-                <option value="week">This Week</option>
-                <option value="month">This Month</option>
-                <option value="range">Date Range</option>
-              </select>
-
-              <!-- DATE RANGE -->
-              <div id="dateRangeBox" class="hidden">
-                <input type="date" name="start_date" id="startDate">
-                <input type="date" name="end_date" id="endDate">
-              </div>
-
-              <!-- SUBMIT -->
-              <button type="submit" >Search</button>
-
-            </form>
-
-            <!-- TABLE -->
-            <div class="table-section">
-
-
-
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Builty No</th>
-                                <th>Customer</th>
-                                <th>Route</th>
-                                <th>Payment</th>
-                                <th>Status</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-
-                            {% for builty in builties %}
-
-                            <tr data-builty-id="{{ builty.pk }}" data-no="{{ builty.builty_no }}"
-                                data-date="{{ builty.builty_date|date:'d M Y' }}"
-                                data-customer="{{ builty.customer.company_name }}"
-                                data-phone="{{ builty.customer.phone }}" data-route="{{ builty.route }}"
-                                data-receiver="{{ builty.receiver_name }}"
-                                data-receiver-phone="{{ builty.receiver_phone }}"
-                                data-freight="{{ builty.freight_amount }}" data-advance="{{ builty.advance_amount }}"
-                                data-remaining="{{ builty.remaining_amount }}"
-                                data-payment="{{ builty.get_payment_status_display }}"
-                                data-dispatch="{{ builty.get_dispatch_status_display }}"
-                                data-vehicle="{{ builty.vehicle_number }}" data-driver="{{ builty.driver_name }}"
-                                data-driver-phone="{{ builty.driver_phone }}"
-                                data-notes="{{ builty.notes|default:''|escapejs }}">
-
-                                <!-- BUILTY NO -->
-                                <td>
-                                    <span class="link">
-                                        {{ builty.builty_no }}
-                                    </span>
-                                </td>
-
-                                <!-- CUSTOMER -->
-                                <td>
-                                    {{ builty.customer.company_name }}
-                                </td>
-
-                                <!-- ROUTE -->
-                                <td>
-                                    {{ builty.route }}
-                                </td>
-
-                                <!-- PAYMENT STATUS -->
-                                <td>
-
-                                    {% if builty.payment_status == 'paid' %}
-
-                                    <span class="balance-badge clear-badge">
-                                        Paid
-                                    </span>
-
-                                    {% elif builty.payment_status == 'partial' %}
-
-                                    <span class="balance-badge advance-badge">
-                                        Partial
-                                    </span>
-
-                                    {% else %}
-
-                                    <span class="balance-badge due-badge">
-                                        To Pay
-                                    </span>
-
-                                    {% endif %}
-
-                                </td>
-
-                                <!-- DISPATCH STATUS -->
-                                <td>
-
-                                    {% if builty.dispatch_status == 'completed' %}
-
-                                    <span class="balance-badge clear-badge">
-                                        Completed
-                                    </span>
-
-                                    {% elif builty.dispatch_status == 'transit' %}
-
-                                    <span class="balance-badge advance-badge">
-                                        In Transit
-                                    </span>
-
-                                    {% else %}
-
-                                    <span class="balance-badge due-badge">
-                                        Pending
-                                    </span>
-
-                                    {% endif %}
-
-                                </td>
-
-                                <!-- DATE -->
-                                <td>
-                                    {{ builty.builty_date|date:"d M Y" }}
-                                </td>
-
-                            </tr>
-
-                            {% empty %}
-
-                            <tr>
-                                <td colspan="6" style="
-            text-align:center;
-            padding:30px;
-            color:#777;
-            font-weight:500;
-        ">
-                                    No Builty Records Found.
-                                </td>
-                            </tr>
-
-                            {% endfor %}
-
-                        </tbody>
-                    </table>
-                    <div class="pagination" id="pagination"></div>
-
-                </div>
-            </div>
-
+      <div class="page-header">
+        <div>
+          <h2>Builty Management</h2>
+          <p>Create Drafts, finalize customer Builties, and prepare dispatch assignments.</p>
         </div>
 
-        <!-- RIGHT PANEL -->
-        <div class="builty-right hidden" id="builtyPanel">
+        <button
+          type="button"
+          class="primary-btn"
+          onclick="openBuiltyModal()"
+        >
+          + Create Builty
+        </button>
+      </div>
 
-            <!-- HEADER -->
-            <div class="panel-header">
-                <h3 id="builtyTitle"></h3>
-                <button class="close-btn" onclick="closeBuilty()">✖</button>
-            </div>
-
-            <!-- DATE -->
-            <div class="panel-sub">
-                <span>Date:</span>
-                <strong id="bDate"></strong>
-            </div>
-
-            <!-- CUSTOMER -->
-            <div class="panel-card">
-
-                <h4>Customer Information</h4>
-
-                <div class="row-line">
-                    <span>Company</span>
-                    <strong id="bCustomer"></strong>
-                </div>
-
-                <div class="row-line">
-                    <span>Phone</span>
-                    <strong id="bPhone"></strong>
-                </div>
-
-            </div>
-
-            <!-- ROUTE -->
-            <div class="panel-card">
-
-                <h4>Shipment Information</h4>
-
-                <div class="row-line">
-                    <span>Route</span>
-                    <strong id="bRoute"></strong>
-                </div>
-
-                <div class="row-line">
-                    <span>Receiver</span>
-                    <strong id="bReceiver"></strong>
-                </div>
-
-                <div class="row-line">
-                    <span>Receiver Phone</span>
-                    <strong id="bReceiverPhone"></strong>
-                </div>
-
-            </div>
-
-            <!-- FINANCIAL -->
-            <div class="panel-card highlight">
-
-                <h4>Financial Summary</h4>
-
-                <div class="row-line">
-                    <span>Freight</span>
-                    <strong id="bFreight"></strong>
-                </div>
-
-                <div class="row-line">
-                    <span>Advance</span>
-                    <strong id="bAdvance"></strong>
-                </div>
-
-                <div class="row-line">
-                    <span>Remaining</span>
-                    <strong class="danger" id="bRemaining"></strong>
-                </div>
-
-                <div class="row-line">
-                    <span>Payment</span>
-                    <strong id="bPaymentStatus"></strong>
-                </div>
-
-                <div class="row-line">
-                    <span>Status</span>
-                    <strong id="bDispatchStatus"></strong>
-                </div>
-
-            </div>
-
-            <!-- VEHICLE -->
-            <div class="panel-card">
-
-                <h4>Vehicle & Driver</h4>
-
-                <div class="row-line">
-                    <span>Vehicle</span>
-                    <strong id="bVehicle"></strong>
-                </div>
-
-                <div class="row-line">
-                    <span>Driver</span>
-                    <strong id="bDriver"></strong>
-                </div>
-
-                <div class="row-line">
-                    <span>Driver Phone</span>
-                    <strong id="bDriverPhone"></strong>
-                </div>
-
-            </div>
-
-            <!-- NOTES -->
-            <div class="panel-card">
-
-                <h4>Notes</h4>
-
-                <div id="bNotes" style="
-            background:#f8f9fb;
-            padding:12px;
-            font-size:13px;
-            border-radius:8px;
-            min-height:50px;
-            line-height:1.5;
-            color:#444;
-        ">
-                </div>
-
-            </div>
-
+      <!-- SUMMARY CARDS -->
+      <div class="builty-cards">
+        <div class="builty-card">
+          <p>Total Builties</p>
+          <h3>{{ stats.total|default:0 }}</h3>
         </div>
+
+        <div class="builty-card">
+          <p>Drafts</p>
+          <h3>{{ stats.drafts|default:0 }}</h3>
+        </div>
+
+        <div class="builty-card">
+          <p>Pending Dispatch</p>
+          <h3>{{ stats.pending|default:0 }}</h3>
+        </div>
+
+        <div class="builty-card">
+          <p>In Transit</p>
+          <h3>{{ stats.transit|default:0 }}</h3>
+        </div>
+      </div>
+
+      <!-- FILTERS -->
+      <form method="GET" class="filter-bar" id="builtyFilterForm">
+        <input
+          type="text"
+          name="q"
+          placeholder="Search Builty, customer, route, vehicle, driver..."
+          value="{{ request.GET.q }}"
+        >
+
+        <select name="document_status">
+          <option value="">All Records</option>
+          <option value="draft" {% if request.GET.document_status == 'draft' %}selected{% endif %}>Draft</option>
+          <option value="finalized" {% if request.GET.document_status == 'finalized' %}selected{% endif %}>Finalized</option>
+          <option value="cancelled" {% if request.GET.document_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+        </select>
+
+        <select name="filter" id="filterSelect">
+          <option value="" {% if not request.GET.filter %}selected{% endif %}>All Time</option>
+          <option value="today" {% if request.GET.filter == 'today' %}selected{% endif %}>Today</option>
+          <option value="yesterday" {% if request.GET.filter == 'yesterday' %}selected{% endif %}>Yesterday</option>
+          <option value="week" {% if request.GET.filter == 'week' %}selected{% endif %}>This Week</option>
+          <option value="month" {% if request.GET.filter == 'month' %}selected{% endif %}>This Month</option>
+          <option value="range" {% if request.GET.filter == 'range' %}selected{% endif %}>Date Range</option>
+        </select>
+
+        <div
+          id="dateRangeBox"
+          class="date-range {% if request.GET.filter != 'range' %}hidden{% endif %}"
+        >
+          <input
+            type="date"
+            name="start_date"
+            id="startDate"
+            value="{{ request.GET.start_date }}"
+          >
+          <span>to</span>
+          <input
+            type="date"
+            name="end_date"
+            id="endDate"
+            value="{{ request.GET.end_date }}"
+          >
+        </div>
+
+        <button type="submit" class="primary-btn">Search</button>
+      </form>
+
+      <!-- TABLE -->
+      <div class="table-section">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Builty No</th>
+                <th>Customer</th>
+                <th>Route</th>
+                <th>Payment</th>
+                <th>Document</th>
+                <th>Dispatch</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for builty in builties %}
+              <tr
+                class="builty-row"
+                data-detail-url="{% url 'builty:builty_detail' builty.pk %}"
+                data-update-url="{% url 'builty:builty_update' builty.pk %}"
+                data-cancel-url="{% url 'builty:builty_cancel' builty.pk %}"
+                data-builty-no="{{ builty.builty_no }}"
+              >
+                <td class="link">{{ builty.builty_no }}</td>
+                <td>{{ builty.customer.company_name }}</td>
+                <td>{{ builty.route }}</td>
+                <td>
+                  <span class="status-badge payment-{{ builty.payment_status }}">
+                    {{ builty.get_payment_status_display }}
+                  </span>
+                </td>
+                <td>
+                  <span class="status-badge document-{{ builty.document_status }}">
+                    {{ builty.get_document_status_display }}
+                  </span>
+                </td>
+                <td>
+                  <span class="status-badge dispatch-{{ builty.dispatch_status }}">
+                    {{ builty.get_dispatch_status_display }}
+                  </span>
+                </td>
+                <td>{{ builty.builty_date|date:"d M Y" }}</td>
+                <td>
+                  <div class="action-buttons">
+                    {% if builty.is_editable %}
+                    <button
+                      type="button"
+                      class="edit-btn action-btn"
+                      onclick="openBuiltyModal(event, this)"
+                    >
+                      Edit
+                    </button>
+                    {% endif %}
+
+                    {% if builty.document_status != 'cancelled' and builty.dispatch_status == 'pending' %}
+                    <button
+                      type="button"
+                      class="cancel-btn action-btn"
+                      onclick="openCancelBuiltyConfirm(event, this)"
+                    >
+                      Cancel
+                    </button>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="8" class="empty-row">No Builty records found.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {% if is_paginated %}
+      <div class="pagination">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&q={{ request.GET.q }}&document_status={{ request.GET.document_status }}&filter={{ request.GET.filter }}&start_date={{ request.GET.start_date }}&end_date={{ request.GET.end_date }}">
+          Previous
+        </a>
+        {% endif %}
+
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&q={{ request.GET.q }}&document_status={{ request.GET.document_status }}&filter={{ request.GET.filter }}&start_date={{ request.GET.start_date }}&end_date={{ request.GET.end_date }}">
+          Next
+        </a>
+        {% endif %}
+      </div>
+      {% endif %}
 
     </div>
 
+    <!-- RIGHT DETAILS PANEL -->
+    <aside class="builty-right hidden" id="builtyPanel">
+      <div class="panel-header">
+        <div>
+          <h3 id="builtyTitle">Builty Details</h3>
+          <span id="builtyDocumentStatus">—</span>
+        </div>
+
+        <button type="button" class="close-btn" onclick="closeBuiltyPanel()">✖</button>
+      </div>
+
+      <div class="panel-sub">
+        <span>Date:</span>
+        <strong id="bDate">—</strong>
+      </div>
+
+      <div class="panel-card">
+        <h4>Customer Information</h4>
+        <div class="row-line"><span>Company</span><strong id="bCustomer">—</strong></div>
+        <div class="row-line"><span>Phone</span><strong id="bPhone">—</strong></div>
+        <div class="row-line"><span>CNIC / NTN</span><strong id="bCnic">—</strong></div>
+      </div>
+
+      <div class="panel-card">
+        <h4>Shipment Information</h4>
+        <div class="row-line"><span>Route</span><strong id="bRoute">—</strong></div>
+        <div class="row-line"><span>Receiver</span><strong id="bReceiver">—</strong></div>
+        <div class="row-line"><span>Receiver Phone</span><strong id="bReceiverPhone">—</strong></div>
+        <div class="row-line"><span>Goods</span><strong id="bGoods">—</strong></div>
+        <div class="row-line"><span>Weight</span><strong id="bWeight">—</strong></div>
+        <div class="row-line"><span>Packages</span><strong id="bPackages">—</strong></div>
+      </div>
+
+      <div class="panel-card highlight">
+        <h4>Financial Summary</h4>
+        <div class="row-line"><span>Freight</span><strong id="bFreight">PKR 0</strong></div>
+        <div class="row-line"><span>Advance</span><strong id="bAdvance">PKR 0</strong></div>
+        <div class="row-line"><span>Remaining</span><strong class="danger" id="bRemaining">PKR 0</strong></div>
+        <div class="row-line"><span>Payment</span><strong id="bPaymentStatus">—</strong></div>
+        <div class="row-line"><span>Dispatch</span><strong id="bDispatchStatus">—</strong></div>
+      </div>
+
+      <div class="panel-card">
+        <h4>Vehicle & Driver</h4>
+        <div class="row-line"><span>Vehicle</span><strong id="bVehicle">—</strong></div>
+        <div class="row-line"><span>Driver</span><strong id="bDriver">—</strong></div>
+        <div class="row-line"><span>Driver Phone</span><strong id="bDriverPhone">—</strong></div>
+      </div>
+
+      <div class="panel-card">
+        <h4>Notes</h4>
+        <p id="bNotes">No notes added.</p>
+      </div>
+
+      <div class="panel-card hidden" id="cancelReasonCard">
+        <h4>Cancellation Reason</h4>
+        <p id="bCancelReason">—</p>
+      </div>
+
+      <div class="panel-actions" id="panelActions">
+        <button
+          type="button"
+          class="primary-btn full-btn"
+          id="panelEditBtn"
+          onclick="editActiveBuilty()"
+        >
+          Edit Builty
+        </button>
+
+        <button
+          type="button"
+          class="danger-outline-btn full-btn"
+          id="panelCancelBtn"
+          onclick="cancelActiveBuilty(event)"
+        >
+          Cancel Builty
+        </button>
+      </div>
+    </aside>
+
+  </div>
 </div>
-<!-- EDIT BUILTY MODAL -->
-<div id="editModal" class="modal-overlay hidden">
 
-    <div class="modal-box">
 
-        <button class="close-btn" onclick="closeEditModal()">✖</button>
+<!-- CREATE / EDIT BUILTY MODAL -->
+<div class="builty-modal-overlay hidden" id="builtyModal">
+  <div class="builty-modal">
 
-        <h3>Edit Builty</h3>
-
-        <div class="form-group">
-            <label>Date</label>
-            <input type="text" id="editDate">
-        </div>
-
-        <div class="form-group">
-            <label>Customer</label>
-            <input type="text" id="editCustomer">
-        </div>
-
-        <div class="form-group">
-            <label>Route</label>
-            <input type="text" id="editRoute">
-        </div>
-
-        <div class="form-group">
-            <label>Freight</label>
-            <input type="number" id="editFreight">
-        </div>
-
-        <div class="form-group">
-            <label>Advance</label>
-            <input type="number" id="editAdvance">
-        </div>
-
-        <div class="form-group">
-            <label>Remaining</label>
-            <input type="number" id="editRemaining">
-        </div>
-
-        <div class="form-group">
-            <label>Status</label>
-            <input type="text" id="editStatus">
-        </div>
-
-        <button class="save-btn" onclick="saveEdit()">Save Changes</button>
-
+    <div class="modal-header">
+      <div>
+        <h2 id="builtyModalTitle">Create Builty</h2>
+        <p id="builtyModalSubtitle">Save incomplete work as Draft or finalize it for dispatch.</p>
+      </div>
+      <button type="button" class="close-btn" onclick="closeBuiltyModal()">✖</button>
     </div>
 
+    <div class="form-warning hidden" id="builtyFormWarning"></div>
+
+
+    <form
+      method="POST"
+      id="builtyForm"
+      action="{% url 'builty:builty_create' %}"
+      data-create-url="{% url 'builty:builty_create' %}"
+      data-customer-search-url="{% url 'builty:customer-search' %}"
+      data-vehicle-search-url="{% url 'builty:vehicle-search' %}"
+      data-driver-search-url="{% url 'builty:driver-search' %}"
+    >
+      {% csrf_token %}
+
+      <input
+        type="hidden"
+        name="submit_action"
+        id="submitActionInput"
+        value="finalize"
+      >
+
+      <!-- Finalized Builty ke disabled fields ke mirror values -->
+      <input
+        type="hidden"
+        name="builty_date"
+        id="lockedBuiltyDate"
+        disabled
+      >
+
+      <input
+        type="hidden"
+        name="freight_amount"
+        id="lockedFreightAmount"
+        disabled
+      >
+
+      <input
+        type="hidden"
+        name="advance_amount"
+        id="lockedAdvanceAmount"
+        disabled
+      >
+
+      <div class="modal-grid">
+
+        <section class="form-section">
+          <h3>Customer Information</h3>
+
+          <div class="autocomplete-field">
+            <label>Customer *</label>
+            <input
+              type="text"
+              id="customerSearch"
+              placeholder="Search customer name, phone or CNIC..."
+              autocomplete="off"
+            >
+            <input type="hidden" name="customer" id="customerId">
+            <div class="suggestions-box hidden" id="customerSuggestions"></div>
+          </div>
+
+          <div class="form-row">
+            <div>
+              <label>Phone</label>
+              <input type="text" id="customerPhone" class="readonly-field" readonly>
+            </div>
+            <div>
+              <label>CNIC / NTN</label>
+              <input type="text" id="customerCnic" class="readonly-field" readonly>
+            </div>
+          </div>
+
+          <div>
+            <label>Builty Date *</label>
+            <input type="date" name="builty_date" id="builtyDateInput" required>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h3>Consignee & Route</h3>
+
+          <div class="form-row">
+            <div>
+              <label>Receiver Name</label>
+              <input type="text" name="receiver_name" id="receiverNameInput">
+            </div>
+            <div>
+              <label>Receiver Phone</label>
+              <input type="text" name="receiver_phone" id="receiverPhoneInput">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div>
+              <label>Origin City</label>
+              <input type="text" name="origin_city" id="originCityInput">
+            </div>
+            <div>
+              <label>Destination City</label>
+              <input type="text" name="destination_city" id="destinationCityInput">
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h3>Shipment Details</h3>
+
+          <div>
+            <label>Goods Description</label>
+            <input type="text" name="goods_description" id="goodsDescriptionInput">
+          </div>
+
+          <div class="form-row">
+            <div>
+              <label>Weight</label>
+              <input
+                type="number"
+                name="weight"
+                id="weightInput"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+              >
+            </div>
+            <div>
+              <label>Number of Packages</label>
+              <input
+                type="number"
+                name="package_count"
+                id="packageCountInput"
+                min="0"
+                step="1"
+              >
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="financial-lock-notice hidden" id="financialLockNotice">
+            Financial fields are locked because this Builty is finalized. Customer, Builty date, freight and recorded advance cannot be changed directly.
+          </div>
+          <h3>Freight Details</h3>
+
+          <div class="form-row three-columns">
+            <div>
+              <label>Total Freight</label>
+              <input
+                type="number"
+                name="freight_amount"
+                id="totalFreight"
+                min="0"
+                step="0.01"
+                value="0"
+              >
+            </div>
+            <div>
+              <label>Advance Received (Cash)</label>
+              <input
+                type="number"
+                name="advance_amount"
+                id="advanceAmount"
+                min="0"
+                step="0.01"
+                value="0"
+              >
+            </div>
+            <div>
+              <label>Remaining</label>
+              <input
+                type="number"
+                id="remainingAmount"
+                class="readonly-field"
+                readonly
+              >
+            </div>
+          </div>
+
+          <div class="finance-preview">
+            <span>Payment Status</span>
+            <strong id="paymentStatusPreview">To Pay</strong>
+          </div>
+        </section>
+
+        <section class="form-section assignment-section">
+          <h3>Vehicle & Driver Assignment</h3>
+          <p class="section-note">
+            Assignment is optional for Draft, but both are required before Finalize.
+          </p>
+
+          <div class="form-row">
+            <div class="autocomplete-field">
+              <label>Vehicle</label>
+              <input
+                type="text"
+                id="vehicleSearch"
+                placeholder="Search registration, code, make..."
+                autocomplete="off"
+              >
+              <input type="hidden" name="vehicle" id="vehicleId">
+              <div class="suggestions-box hidden" id="vehicleSuggestions"></div>
+            </div>
+
+            <div class="autocomplete-field">
+              <label>Driver</label>
+              <input
+                type="text"
+                id="driverSearch"
+                placeholder="Search driver name, code, phone..."
+                autocomplete="off"
+              >
+              <input type="hidden" name="driver" id="driverId">
+              <div class="suggestions-box hidden" id="driverSuggestions"></div>
+            </div>
+          </div>
+
+          <div class="assignment-summary">
+            <div><span>Selected Vehicle</span><strong id="selectedVehicleText">Not assigned</strong></div>
+            <div><span>Selected Driver</span><strong id="selectedDriverText">Not assigned</strong></div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h3>Additional Notes</h3>
+          <textarea
+            name="notes"
+            id="notesInput"
+            placeholder="Delivery instructions, loading notes, or internal remarks..."
+          ></textarea>
+        </section>
+
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="secondary-btn" onclick="closeBuiltyModal()">
+          Cancel
+        </button>
+
+        <button
+          type="submit"
+          class="secondary-action-btn"
+          data-action="draft"
+          id="saveDraftBtn"
+          formnovalidate
+        >
+          Save Draft
+        </button>
+
+        <button
+          type="submit"
+          class="primary-btn"
+          data-action="finalize"
+          id="finalizeBuiltyBtn"
+        >
+          Finalize Builty
+        </button>
+      </div>
+
+    </form>
+  </div>
 </div>
 
+
+<!-- CANCEL CONFIRMATION MODAL -->
+<div class="custom-confirm-overlay hidden" id="cancelBuiltyModal">
+  <div class="custom-confirm-box">
+    <div class="confirm-icon">!</div>
+    <h3>Cancel Builty?</h3>
+    <p>
+      You are cancelling
+      <strong id="cancelBuiltyName">this Builty</strong>.
+    </p>
+
+    <form method="POST" id="cancelBuiltyForm">
+      {% csrf_token %}
+      <label for="cancelReasonInput">Cancellation Reason *</label>
+      <textarea
+        name="cancel_reason"
+        id="cancelReasonInput"
+        required
+        placeholder="Enter reason for cancellation..."
+      ></textarea>
+
+      <div class="confirm-actions">
+        <button type="button" class="secondary-btn" onclick="closeCancelBuiltyConfirm()">
+          Keep Builty
+        </button>
+        <button type="submit" class="danger-btn" id="confirmCancelBtn">
+          Yes, Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
 
 {% endblock content %}
-
 
 {% block extra_js %}
 <script src="{% static 'js/builty.js' %}"></script>

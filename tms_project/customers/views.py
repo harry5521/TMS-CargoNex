@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404, render, redirect
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 from django.views.generic import ListView
 from django.contrib import messages
@@ -7,7 +8,7 @@ from .models import Customer
 
 # Create your views here.
 
-class CustomerListView(ListView):
+class CustomerListView(LoginRequiredMixin, ListView):
     model = Customer
     template_name = 'customers/customers.html'
     context_object_name = 'customers'
@@ -27,7 +28,7 @@ class CustomerListView(ListView):
         return queryset
 
 
-class CustomerFormView(View):
+class CustomerFormView(LoginRequiredMixin, View):
 
     def get(self, request):
         return render(
@@ -69,7 +70,7 @@ class CustomerFormView(View):
 
 
 
-class CustomerUpdateView(View):
+class CustomerUpdateView(LoginRequiredMixin, View):
 
     def post(self, request, pk):
 

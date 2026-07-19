@@ -8,6 +8,7 @@ from django.db.models import Q
 from django.db.models.deletion import ProtectedError
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
 from django.views import View
 from django.views.generic import ListView
@@ -60,7 +61,7 @@ def decimal_string(value):
     return str(value)
 
 
-class VehicleListView(ListView):
+class VehicleListView(LoginRequiredMixin, ListView):
 
     model = Vehicle
     template_name = "vehicles/vehicles.html"
@@ -93,7 +94,7 @@ class VehicleListView(ListView):
         return queryset
 
 
-class VehicleCreateView(View):
+class VehicleCreateView(LoginRequiredMixin, View):
 
     def post(self, request):
 
@@ -150,7 +151,7 @@ class VehicleCreateView(View):
         )
 
 
-class VehicleUpdateView(View):
+class VehicleUpdateView(LoginRequiredMixin, View):
 
     def post(self, request, pk):
 
@@ -215,7 +216,7 @@ class VehicleUpdateView(View):
         )
 
 
-class VehicleDeleteView(View):
+class VehicleDeleteView(LoginRequiredMixin, View):
 
     def post(self, request, pk):
 
@@ -272,7 +273,7 @@ class VehicleDeleteView(View):
         )
 
 
-class VehicleDetailView(View):
+class VehicleDetailView(LoginRequiredMixin, View):
 
     def get(self, request, pk):
 
@@ -409,7 +410,7 @@ class VehicleDetailView(View):
         })
 
 
-class VehicleDepreciationView(View):
+class VehicleDepreciationView(LoginRequiredMixin, View):
 
     def get(self, request, pk):
 
@@ -455,3 +456,4 @@ class VehicleDepreciationView(View):
             )
 
         return JsonResponse(data)
+    
